@@ -1,7 +1,6 @@
 from fftcg_parser import *
 import json
-from flask import Flask, escape, request
-from stringify import *
+from flask import Flask, escape, request, Response
 
 cards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
 
@@ -19,19 +18,33 @@ for card in cards:
 with open('cards.json', 'w') as outfile:
     json.dump(cards, outfile)
 
-myjson = json.dumps(cards)
-mydict = json.loads(myjson)
 
-@app.route('/card/<name>')
+@app.route('/api/card/<name>')
 def hello(name):
+    card_list = []
     for card in mydict:
-        if card['Code'] == name:
-            return card
+        if name in card['Code']:
+            card_list.append(card)
 
-@app.route('/')
+    if len(card_list) == 1:
+        return card_list[0]
+    else:
+        return Response(json.dumps(card_list), mimetype='application/json')
+
+
+@app.route('/api/set/<opus>')
+def set_grab(opus):
+    card_list = []
+    for card in mydict:
+        if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
+             card_list.append(card)
+
+    return Response(json.dumps(card_list), mimetype='application/json')
+
+
+@app.route('/api/')
 def hello2():
     return myjson
-
 
 
 if __name__ == '__main__':
