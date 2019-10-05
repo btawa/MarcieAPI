@@ -47,7 +47,7 @@ def set_grab(opus):
 
 @app.route('/api/')
 def hello2():
-    return myjson
+    return Response(json.dumps(mydict), mimetype='application/json')
 
 
 if __name__ == '__main__':
