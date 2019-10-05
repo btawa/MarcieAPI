@@ -18,6 +18,9 @@ for card in cards:
 with open('cards.json', 'w') as outfile:
     json.dump(cards, outfile)
 
+myjson = json.dumps(cards)
+mydict = json.loads(myjson)
+
 
 @app.route('/api/card/<name>')
 def hello(name):
