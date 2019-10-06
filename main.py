@@ -3,42 +3,48 @@ import json
 from flask import Flask, escape, request, Response
 
 
-def checkAPI(localkey):
-    headers = request.headers
+def checkAPI():
+    args = request.args
 
-    if localkey == headers.get('X-Api-Key'):
+    with open('settings.json', 'r') as myfile:
+        settings = json.load(myfile)
+
+    if settings['API_KEY'] == args['api_key']:
         return True
     else:
         return False
 
+def makecards():
 
-cards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
+    cards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
 
+    mykeys = ('Element', 'Name_EN', 'Cost', 'Code', 'Multicard', 'Type_EN', 'Category_1', 'Text_EN', 'Job_EN', 'Power',
+              'Ex_Burst', 'Set', 'Rarity')
 
-with open('settings.json', 'r') as myfile:
-    settings = json.load(myfile)
+    for card in cards:
+        for key in list(card):
+            if key in mykeys:
+                card[key] = prettyTrice(card[key])
+            else:
+                del card[key]
+
+    with open('cards.json', 'w') as outfile:
+        json.dump(cards, outfile)
+
+    myjson = json.dumps(cards)
+    mydict = json.loads(myjson)
+
+    return mydict
+
 
 app = Flask(__name__)
 
-mykeys = ('Element','Name_EN','Cost','Code','Multicard','Type_EN','Category_1','Text_EN','Job_EN','Power', 'Ex_Burst' , 'Set', 'Rarity')
-
-for card in cards:
-    for key in list(card):
-        if key in mykeys:
-            card[key] = prettyTrice(card[key])
-        else:
-            del card[key]
-
-with open('cards.json', 'w') as outfile:
-    json.dump(cards, outfile)
-
-myjson = json.dumps(cards)
-mydict = json.loads(myjson)
+mydict = makecards()
 
 
 @app.route('/api/card/<code>')
 def hello(code):
-    if checkAPI(settings['API_KEY']) is True:
+    if checkAPI() is True:
         card_list = []
         for card in mydict:
             if code in card['Code']:
@@ -54,7 +60,7 @@ def hello(code):
 
 @app.route('/api/set/<opus>')
 def set_grab(opus):
-    if checkAPI(settings['API_KEY']) is True:
+    if checkAPI() is True:
         card_list = []
         for card in mydict:
             if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
@@ -67,7 +73,7 @@ def set_grab(opus):
 
 @app.route('/api/')
 def hello2():
-    if checkAPI(settings['API_KEY']) is True:
+    if checkAPI() is True:
         return Response(json.dumps(mydict), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
