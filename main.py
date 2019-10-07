@@ -31,6 +31,7 @@ def makecards():
                 card[key] = prettyTrice(card[key])
             else:
                 del card[key]
+        card['Text_EN'] = card['Text_EN'].split('\n')
 
     with open('cards.json', 'w') as outfile:
         json.dump(cards, outfile)

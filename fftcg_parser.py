@@ -277,8 +277,8 @@ def prettyTrice(string):
     string = string.replace(u"\u300a"u"\u0053"u"\u300b", '[Special]')
 
     # Bubble used for Multicard and Ex_Burst
-    string = string.replace(u'\u25CB', 'Yes')
-    string = string.replace(u'\u3007', 'Yes')
+    string = string.replace(u'\u25CB', 'True')
+    string = string.replace(u'\u3007', 'False')
 
     # Horizontal Bar
     string = string.replace(u'\u2015', '')
