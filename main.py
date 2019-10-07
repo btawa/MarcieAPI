@@ -79,6 +79,8 @@ def hello2():
         return Response('401 Unauthorized API Key', 401)
 
 
+mycards = makecards()
+
+
 if __name__ == '__main__':
-    mycards = makecards()
-    app.run(host='0.0.0.0')
+    app.run()
