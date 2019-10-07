@@ -3,6 +3,9 @@ import json
 from flask import Flask, escape, request, Response
 
 
+app = Flask(__name__)
+
+
 def checkAPI():
     args = request.args
 
@@ -13,6 +16,7 @@ def checkAPI():
         return True
     else:
         return False
+
 
 def makecards():
 
@@ -35,11 +39,6 @@ def makecards():
     mydict = json.loads(myjson)
 
     return mydict
-
-
-app = Flask(__name__)
-
-mydict = makecards()
 
 
 @app.route('/api/card/<code>')
@@ -80,4 +79,5 @@ def hello2():
 
 
 if __name__ == '__main__':
+    mydict = makecards()
     app.run(host='0.0.0.0')
