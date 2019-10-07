@@ -46,7 +46,7 @@ def makecards():
 def hello(code):
     if checkAPI() is True:
         card_list = []
-        for card in mydict:
+        for card in mycards:
             if code in card['Code']:
                 card_list.append(card)
 
@@ -62,7 +62,7 @@ def hello(code):
 def set_grab(opus):
     if checkAPI() is True:
         card_list = []
-        for card in mydict:
+        for card in mycards:
             if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
                 card_list.append(card)
 
@@ -74,11 +74,11 @@ def set_grab(opus):
 @app.route('/api/')
 def hello2():
     if checkAPI() is True:
-        return Response(json.dumps(mydict), mimetype='application/json')
+        return Response(json.dumps(mycards), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
 
 
 if __name__ == '__main__':
-    mydict = makecards()
+    mycards = makecards()
     app.run(host='0.0.0.0')
