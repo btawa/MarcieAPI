@@ -38,8 +38,12 @@ def makecards():
                 elif key == 'Power':
                     if card[key] == "":
                         card[key] = None
+                    elif re.search(r'\u2015', card[key]):
+                        card[key] = None
+                    elif re.search(r'\－', card[key]):
+                        card[key] = None
                     else:
-                        card[key] = card[key]
+                        card[key] = int(card[key])
                 elif key == "Rarity":
                     card[key] = card[key][0]
                 elif key == "Code":
@@ -47,6 +51,8 @@ def makecards():
                         card[key] = card[key]
                     else:
                         card[key] = card[key][:-1]
+                elif key == "Cost":
+                    card[key] = int(card[key])
                 else:
                     card[key] = prettyTrice(card[key])
             else:
@@ -100,9 +106,10 @@ def hello2():
         return Response('401 Unauthorized API Key', 401)
 
 
-with open('completeset.json', 'r') as infile:
-    mycards = json.load(infile)
+#with open('completeset.json', 'r') as infile:
+#    mycards = json.load(infile)
 
+mycards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
 
 if __name__ == '__main__':
     app.run()
