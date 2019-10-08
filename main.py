@@ -35,12 +35,17 @@ def hello(code):
 
 
 @app.route('/api/set/<opus>')
-def set_grab(opus):
+def set_grab(opus: int):
     if checkAPI() is True:
         card_list = []
         for card in mycards:
-            if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
-                card_list.append(card)
+            if card['Set'] is None:
+                pass
+            elif isinstance(opus,int) is False:
+                pass
+            else:
+                if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
+                    card_list.append(card)
 
         return Response(json.dumps(card_list), mimetype='application/json')
     else:

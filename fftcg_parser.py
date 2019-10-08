@@ -473,7 +473,12 @@ def ffdeckstomarcieapi(listofdicts):
         converted[card]['Name_EN'] = ffdeckstostring(listofdicts[card]['name'])
         converted[card]['Power'] = listofdicts[card]['power']
         converted[card]['Rarity'] = ffdeckstostring(listofdicts[card]['rarity'])[0]
-        converted[card]['Set'] = ffdeckstostring('Opus X')
+
+        if re.search(r'^PR' , converted[card]['Code']):
+            converted[card]['Set'] = None
+        else:
+            setnumber = int(re.search(r'^\d+', converted[card]['Code']).group(0))
+            converted[card]['Set'] = 'Opus ' + roman.toRoman(setnumber)
         converted[card]['Type_EN'] = ffdeckstostring(listofdicts[card]['type'])
         converted[card]['Text_EN'] = []
 
