@@ -234,6 +234,20 @@ def getimageURL(code):
     return URL
 
 
+# Takes in a list of dicts (cards) and returns a list of url's from square.
+
+def urlset(cards_list):
+    url_list = []
+    for card in cards_list:
+        if re.search(r'\/', card['Code']):
+            for x in card['Code'].split('/'):
+                url_list.append('https://fftcg.cdn.sewest.net/images/cards/full/' + x + '_eg.jpg')
+        else:
+            url_list.append('https://fftcg.cdn.sewest.net/images/cards/full/' + card['Code'] + '_eg.jpg')
+
+    return list(dict.fromkeys(url_list))
+
+
 # Loading JSON from file and load it into a variable
 # data - untouched JSON from file
 # card_list - list of cards
