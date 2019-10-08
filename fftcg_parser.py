@@ -424,7 +424,7 @@ def createstrawpoll(pollname, cards):
 # to marcieapi JSON.  FFDecks uses different characters to denote
 # different things.
 
-def ffdeckstomarcieapi(string):
+def ffdeckstostring(string):
     string = string.replace('{s}', '[Special]')
     string = string.replace('{a}', '(Water)')
     string = string.replace('{w}', '(Wind)')
@@ -455,7 +455,7 @@ def ffdeckstomarcieapi(string):
 
 # This function converts ffdecks inputs to marcieapi output
 
-def parseffdeckstomarcie(listofdicts):
+def ffdeckstomarcieapi(listofdicts):
 
     converted = []
 
@@ -463,31 +463,28 @@ def parseffdeckstomarcie(listofdicts):
         converted.append({})
 
     for card in range(0, len(listofdicts)):
-        converted[card]['Category_1'] = ffdeckstomarcieapi(listofdicts[card]['category'])
-        converted[card]['Code'] = ffdeckstomarcieapi(listofdicts[card]['serial_number'])
+        converted[card]['Category_1'] = ffdeckstostring(listofdicts[card]['category'])
+        converted[card]['Code'] = ffdeckstostring(listofdicts[card]['serial_number'])
         converted[card]['Cost'] = listofdicts[card]['cost']
-        converted[card]['Element'] = ffdeckstomarcieapi(listofdicts[card]['element'])
+        converted[card]['Element'] = ffdeckstostring(listofdicts[card]['element'])
         converted[card]['Ex_Burst'] = listofdicts[card]['is_ex_burst']
-        converted[card]['Job_EN'] = ffdeckstomarcieapi(listofdicts[card]['job'])
+        converted[card]['Job_EN'] = ffdeckstostring(listofdicts[card]['job'])
         converted[card]['Multicard'] = listofdicts[card]['is_multi_playable']
-        converted[card]['Name_EN'] = ffdeckstomarcieapi(listofdicts[card]['name'])
+        converted[card]['Name_EN'] = ffdeckstostring(listofdicts[card]['name'])
         converted[card]['Power'] = listofdicts[card]['power']
-        converted[card]['Rarity'] = ffdeckstomarcieapi(listofdicts[card]['rarity'])[0]
-        converted[card]['Set'] = ffdeckstomarcieapi('Opus X')
-        converted[card]['Type_EN'] = ffdeckstomarcieapi(listofdicts[card]['type'])
+        converted[card]['Rarity'] = ffdeckstostring(listofdicts[card]['rarity'])[0]
+        converted[card]['Set'] = ffdeckstostring('Opus X')
+        converted[card]['Type_EN'] = ffdeckstostring(listofdicts[card]['type'])
         converted[card]['Text_EN'] = []
 
         for line in range(0, len(listofdicts[card]['abilities'])):
-            converted[card]['Text_EN'].append(ffdeckstomarcieapi(str(listofdicts[card]['abilities'][line])))
-
+            converted[card]['Text_EN'].append(ffdeckstostring(str(listofdicts[card]['abilities'][line])))
     return converted
 
 
-# This function makes a cards JSON from fdecks and writes it to cards.json in the local directory
+# This function makes a cards JSON from square and writes it to cards.json in the local directory
 
-def makecards():
-
-    cards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
+def squaretomarcieapi(cards):
 
     mykeys = ('Element', 'Name_EN', 'Cost', 'Code', 'Multicard', 'Type_EN', 'Category_1', 'Text_EN', 'Job_EN', 'Power',
               'Ex_Burst', 'Set', 'Rarity')
@@ -525,9 +522,6 @@ def makecards():
                 del card[key]
 
         card['Text_EN'] = card['Text_EN'].split('\n')
-
-    with open('cards.json', 'w') as outfile:
-        json.dump(cards, outfile)
 
     myjson = json.dumps(cards)
     mydict = json.loads(myjson)
