@@ -35,13 +35,16 @@ def hello(code):
 
 
 @app.route('/api/set/<opus>')
-def set_grab(opus: int):
+def set_grab(opus):
+    try:
+        opus = int(opus)
+    except:
+        return Response('500 Input is not a integer', 500)
+
     if checkAPI() is True:
         card_list = []
         for card in mycards:
             if card['Set'] is None:
-                pass
-            elif isinstance(opus,int) is False:
                 pass
             else:
                 if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
