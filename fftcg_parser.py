@@ -241,9 +241,9 @@ def urlset(cards_list):
     for card in cards_list:
         if re.search(r'\/', card['Code']):
             for x in card['Code'].split('/'):
-                url_list.append('https://fftcg.cdn.sewest.net/images/cards/full/' + x + '_eg.jpg')
+                url_list.append('https://storage.googleapis.com/marceapi-images/' + x + '_eg.jpg')
         else:
-            url_list.append('https://fftcg.cdn.sewest.net/images/cards/full/' + card['Code'] + '_eg.jpg')
+            url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + '_eg.jpg')
 
     return list(dict.fromkeys(url_list))
 
