@@ -420,3 +420,117 @@ def createstrawpoll(pollname, cards):
         return
 
 
+# This function is used to convert information from ffdecks JSON
+# to marcieapi JSON.  FFDecks uses different characters to denote
+# different things.
+
+def ffdeckstomarcieapi(string):
+    string = string.replace('{s}', '[Special]')
+    string = string.replace('{a}', '(Water)')
+    string = string.replace('{w}', '(Wind)')
+    string = string.replace('{e}', '(Earth)')
+    string = string.replace('{f}', '(Fire)')
+    string = string.replace('{i}', '(Ice)')
+    string = string.replace('{l}', '(Lightning)')
+    string = string.replace('{d}', '(Dull)')
+
+    string = string.replace('{x}', '[EX BURST]')
+    string = string.replace('{0}', '(0)')
+    string = string.replace('{1}', '(1)')
+    string = string.replace('{2}', '(2)')
+    string = string.replace('{3}', '(3)')
+    string = string.replace('{4}', '(4)')
+    string = string.replace('{5}', '(5)')
+    string = string.replace('{6}', '(6)')
+    string = string.replace('{7}', '(7)')
+    string = string.replace('{8}', '(8)')
+    string = string.replace('{9}', '(9)')
+
+    string = string.replace('*', '')
+    string = string.replace('%', '')
+    string = string.replace('~', '')
+
+    return string
+
+
+# This function converts ffdecks inputs to marcieapi output
+
+def parseffdeckstomarcie(listofdicts):
+
+    converted = []
+
+    for x in range(0,len(listofdicts)):
+        converted.append({})
+
+    for card in range(0, len(listofdicts)):
+        converted[card]['Category_1'] = ffdeckstomarcieapi(listofdicts[card]['category'])
+        converted[card]['Code'] = ffdeckstomarcieapi(listofdicts[card]['serial_number'])
+        converted[card]['Cost'] = listofdicts[card]['cost']
+        converted[card]['Element'] = ffdeckstomarcieapi(listofdicts[card]['element'])
+        converted[card]['Ex_Burst'] = listofdicts[card]['is_ex_burst']
+        converted[card]['Job_EN'] = ffdeckstomarcieapi(listofdicts[card]['job'])
+        converted[card]['Multicard'] = listofdicts[card]['is_multi_playable']
+        converted[card]['Name_EN'] = ffdeckstomarcieapi(listofdicts[card]['name'])
+        converted[card]['Power'] = listofdicts[card]['power']
+        converted[card]['Rarity'] = ffdeckstomarcieapi(listofdicts[card]['rarity'])[0]
+        converted[card]['Set'] = ffdeckstomarcieapi('Opus X')
+        converted[card]['Type_EN'] = ffdeckstomarcieapi(listofdicts[card]['type'])
+        converted[card]['Text_EN'] = []
+
+        for line in range(0, len(listofdicts[card]['abilities'])):
+            converted[card]['Text_EN'].append(ffdeckstomarcieapi(str(listofdicts[card]['abilities'][line])))
+
+    return converted
+
+
+# This function makes a cards JSON from fdecks and writes it to cards.json in the local directory
+
+def makecards():
+
+    cards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
+
+    mykeys = ('Element', 'Name_EN', 'Cost', 'Code', 'Multicard', 'Type_EN', 'Category_1', 'Text_EN', 'Job_EN', 'Power',
+              'Ex_Burst', 'Set', 'Rarity')
+
+    for card in cards:
+        for key in list(card):
+            if key in mykeys:
+                if key == "Multicard" or key == "Ex_Burst":
+                    card[key] = prettyTrice(card[key])
+                    if card[key] == "True":
+                        card[key] = True
+                    else:
+                        card[key] = False
+                elif key == 'Power':
+                    if card[key] == "":
+                        card[key] = None
+                    elif re.search(r'\u2015', card[key]):
+                        card[key] = None
+                    elif re.search(r'\－', card[key]):
+                        card[key] = None
+                    else:
+                        card[key] = int(card[key])
+                elif key == "Rarity":
+                    card[key] = card[key][0]
+                elif key == "Code":
+                    if re.search(r'PR-\d{3}', card[key]):
+                        card[key] = card[key]
+                    else:
+                        card[key] = card[key][:-1]
+                elif key == "Cost":
+                    card[key] = int(card[key])
+                else:
+                    card[key] = prettyTrice(card[key])
+            else:
+                del card[key]
+
+        card['Text_EN'] = card['Text_EN'].split('\n')
+
+    with open('cards.json', 'w') as outfile:
+        json.dump(cards, outfile)
+
+    myjson = json.dumps(cards)
+    mydict = json.loads(myjson)
+
+    return mydict
+
