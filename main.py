@@ -1,6 +1,7 @@
 from fftcg_parser import *
 import json
 from flask import Flask, escape, request, Response
+import re
 
 
 app = Flask(__name__)
@@ -28,9 +29,29 @@ def makecards():
     for card in cards:
         for key in list(card):
             if key in mykeys:
-                card[key] = prettyTrice(card[key])
+                if key == "Multicard" or key == "Ex_Burst":
+                    card[key] = prettyTrice(card[key])
+                    if card[key] == "True":
+                        card[key] = True
+                    else:
+                        card[key] = False
+                elif key == 'Power':
+                    if card[key] == "":
+                        card[key] = None
+                    else:
+                        card[key] = card[key]
+                elif key == "Rarity":
+                    card[key] = card[key][0]
+                elif key == "Code":
+                    if re.search(r'PR-\d{3}', card[key]):
+                        card[key] = card[key]
+                    else:
+                        card[key] = card[key][:-1]
+                else:
+                    card[key] = prettyTrice(card[key])
             else:
                 del card[key]
+
         card['Text_EN'] = card['Text_EN'].split('\n')
 
     with open('cards.json', 'w') as outfile:
@@ -79,7 +100,8 @@ def hello2():
         return Response('401 Unauthorized API Key', 401)
 
 
-mycards = makecards()
+with open('completeset.json', 'r') as infile:
+    mycards = json.load(infile)
 
 
 if __name__ == '__main__':
