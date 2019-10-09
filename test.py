@@ -4,16 +4,21 @@ from main import *
 #with open('completesetffdecks.json', 'r') as infile:
 #    cards = json.load(infile)
 
-ffdecks = loadJson('http://ffdecks.com/api/cards/basic')
+ffdecks = loadJson('https://ffdecks.com/api/cards/basic')
 square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
 
 
-ffdecks = parseffdeckstomarcie(ffdecks)
-square = makecards(square)
+ffdecks_cards = ffdeckstomarcieapi(ffdecks)
+square_cards = squaretomarcieapi(square)
 
-print(json.dumps(ffdecks))
+imageurlset1 = urlset(ffdecks_cards)
+imageurlset2 = urlset(square_cards)
 
 
-#with open('imageurls.txt', 'w') as outfile:
-#    for url in imageurlset:
-#        outfile.write(url + "\n")
+with open('imageurls1.txt', 'w') as outfile:
+    for url in imageurlset1:
+        outfile.write(url + "\n")
+
+with open('imageurls2.txt', 'w') as outfile:
+    for url in imageurlset2:
+        outfile.write(url + "\n")

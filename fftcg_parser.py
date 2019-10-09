@@ -241,9 +241,10 @@ def urlset(cards_list):
     for card in cards_list:
         if re.search(r'\/', card['Code']):
             for x in card['Code'].split('/'):
-                url_list.append('https://storage.googleapis.com/marceapi-images/' + x + '_eg.jpg')
+                print(x)
+                url_list.append('https://storage.googleapis.com/marceapi-images/' + x + card['Rarity'] + '_eg.jpg')
         else:
-            url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + '_eg.jpg')
+            url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + card['Rarity'] + '_eg.jpg')
 
     return list(dict.fromkeys(url_list))
 
@@ -474,7 +475,7 @@ def ffdeckstomarcieapi(listofdicts):
         converted[card]['Power'] = listofdicts[card]['power']
         converted[card]['Rarity'] = ffdeckstostring(listofdicts[card]['rarity'])[0]
 
-        if re.search(r'^PR' , converted[card]['Code']):
+        if re.search(r'^PR-' , converted[card]['Code']):
             converted[card]['Set'] = None
         else:
             setnumber = int(re.search(r'^\d+', converted[card]['Code']).group(0))
@@ -516,6 +517,8 @@ def squaretomarcieapi(cards):
                     card[key] = card[key][0]
                 elif key == "Code":
                     if re.search(r'PR-\d{3}', card[key]):
+                        card[key] = card[key]
+                    elif re.search(r'\/', card[key]):
                         card[key] = card[key]
                     else:
                         card[key] = card[key][:-1]
