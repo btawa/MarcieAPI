@@ -63,10 +63,12 @@ def hello2():
         return Response('401 Unauthorized API Key', 401)
 
 
-#mycards = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
-mycards = loadJson('http://ffdecks.com/api/cards/basic')
-mycards = ffdeckstomarcieapi(mycards)
+myjson = loadJson('http://ffdecks.com/api/cards/basic')
 
+ffdecks = ffdeckstomarcieapi(myjson)
+imageurlset = urlset(ffdecks)
+
+mycards = addimageurltojson(ffdecks, imageurlset)
 
 if __name__ == '__main__':
     app.run()

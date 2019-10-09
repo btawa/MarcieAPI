@@ -241,8 +241,9 @@ def urlset(cards_list):
     for card in cards_list:
         if re.search(r'\/', card['Code']):
             for x in card['Code'].split('/'):
-                print(x)
                 url_list.append('https://storage.googleapis.com/marceapi-images/' + x + card['Rarity'] + '_eg.jpg')
+        elif card['Rarity'] == "P":
+            url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + '_eg.jpg')
         else:
             url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + card['Rarity'] + '_eg.jpg')
 
@@ -486,6 +487,15 @@ def ffdeckstomarcieapi(listofdicts):
         for line in range(0, len(listofdicts[card]['abilities'])):
             converted[card]['Text_EN'].append(ffdeckstostring(str(listofdicts[card]['abilities'][line])))
     return converted
+
+
+def addimageurltojson(cards_list, image_list):
+    for card in cards_list:
+        for url in image_list:
+            if card['Code'] in url:
+                card['image_url'] = url
+
+    return cards_list
 
 
 # This function makes a cards JSON from square and writes it to cards.json in the local directory
