@@ -63,12 +63,20 @@ def hello2():
         return Response('401 Unauthorized API Key', 401)
 
 
-myjson = loadJson('http://ffdecks.com/api/cards/basic')
+#myjson = loadJson('http://ffdecks.com/api/cards/basic')
 
-ffdecks = ffdeckstomarcieapi(myjson)
-imageurlset = urlset(ffdecks)
+#ffdecks = ffdeckstomarcieapi(myjson)
+#imageurlset = urlset(ffdecks)
 
-mycards = addimageurltojson(ffdecks, imageurlset)
+
+#mycards = addimageurltojson(ffdecks, imageurlset)
+
+#with open('cards.json', 'w') as outfile:
+#    json.dump(mycards, outfile)
+
+with open('cards.json', 'r') as infile:
+    mycards = json.load(infile)
+
 
 if __name__ == '__main__':
     app.run()
