@@ -1,5 +1,4 @@
 from fftcg_parser import *
-from main import *
 import sys
 
 if sys.argv[1] == 'ffdecks':
@@ -11,6 +10,10 @@ if sys.argv[1] == 'ffdecks':
     with open('cards.json', 'w+') as outfile:
         json.dump(cards, outfile)
 
+    with open('imageurls.txt', 'w+') as outfile:
+        for url in imageurlset:
+            outfile.write(url + '\n')
+
 elif sys.argv[1] == 'square':
     square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
     cards = squaretomarcieapi(square['cards'])
@@ -19,6 +22,10 @@ elif sys.argv[1] == 'square':
 
     with open('cards.json', 'w+') as outfile:
         json.dump(cards, outfile)
+
+    with open('imageurls.txt', 'w+') as outfile:
+        for url in imageurlset:
+            outfile.write(url + '\n')
 
 else:
     pass
