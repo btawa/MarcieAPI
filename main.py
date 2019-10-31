@@ -74,8 +74,8 @@ def hello2():
 #with open('cards.json', 'w') as outfile:
 #    json.dump(mycards, outfile)
 
-with open('cards.json', 'r') as infile:
-    mycards = json.load(infile)
+#with open('cards.json', 'r') as infile:
+#    mycards = json.load(infile)
 
 
 if __name__ == '__main__':

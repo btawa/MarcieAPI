@@ -30,7 +30,7 @@ def grab_card(req, cards):
         return our_card
     else:
         for x in cards:
-            if re.search(req, x[u'Code'].upper()):
+            if re.search(req, f"{x[u'Code']}{x['Rarity']}".upper()):
                 our_card = x
         return our_card
 
@@ -50,7 +50,7 @@ def grab_cards(req, cards):
     else:
 
         for x in cards:
-            if re.search(req, x[u'Name_EN'].lower()):
+            if re.search(req, f"{x[u'Name_EN']}".lower()):
                 our_cards.append(x)
         return our_cards
 
@@ -62,33 +62,15 @@ def grab_cards(req, cards):
 
 def prettyCode(card):
     # Multicard Check
-    if card[u'Multicard'] == u"\u25cb":
+    if card['Multicard'] is True:
         multicard = f"\u00B7 (Generic)"
     else:
         multicard = ''
 
-    # Determine what the element is and convert character to word
-    if card[u'Element'] == u"\u571F":
-        element = "Earth"
-    elif card[u'Element'] == u"\u6c34":
-        element = "Water"
-    elif card[u'Element'] == u"\u706b":
-        element = "Fire"
-    elif card[u'Element'] == u"\u98a8":
-        element = "Wind"
-    elif card[u'Element'] == u"\u6c37":
-        element = "Ice"
-    elif card[u'Element'] == u"\u5149":
-        element = "Light"
-    elif card[u'Element'] == u"\u95c7":
-        element = "Dark"
-    elif card[u'Element'] == u"\u96f7":
-        element = "Lightning"
+    if card['Rarity'] == "P":
+        line1 = f"{card['Code']} \u00B7 {card['Name_EN']} \u00B7 {card['Element']} {card['Cost']} \u00B7 {card['Type_EN']} {multicard}"
     else:
-        element = ''
-
-    line1 = f"{card[u'Code']} \u00B7 {card[u'Name_EN']} \u00B7 {element} {card[u'Cost']} \u00B7 {card[u'Type_EN']} {multicard}"
-
+        line1 = f"{card['Code']}{card['Rarity']} \u00B7 {card['Name_EN']} \u00B7 {card['Element']} {card['Cost']} \u00B7 {card['Type_EN']} {multicard}"
     return line1
 
 
@@ -98,110 +80,38 @@ def prettyCode(card):
 # In marciebot this is used specifically for the name and code functions.
 
 def prettyCard(card):
-    # Determine what the element is and convert character to word
-    if card[u'Element'] == u"\u571F":
-        element = "Earth"
-    elif card[u'Element'] == u"\u6c34":
-        element = "Water"
-    elif card[u'Element'] == u"\u706b":
-        element = "Fire"
-    elif card[u'Element'] == u"\u98a8":
-        element = "Wind"
-    elif card[u'Element'] == u"\u6c37":
-        element = "Ice"
-    elif card[u'Element'] == u"\u5149":
-        element = "Light"
-    elif card[u'Element'] == u"\u95c7":
-        element = "Dark"
-    elif card[u'Element'] == u"\u96f7":
-        element = "Lightning"
-    else:
-        element = ''
-
-    if card[u'Multicard'] == u"\u25cb":
+    if card[u'Multicard'] is True:
         multicard = f"\u00B7 (Generic)"
     else:
         multicard = ''
 
     #  Prepping different lines for return
-    line1 = f"{card[u'Name_EN']} \u00B7 {element} {card[u'Cost']} \u00B7 ({card[u'Code']}) {multicard}"
+    if card['Rarity'] == "P":
+        line1 = f"{card[u'Name_EN']} \u00B7 {card[u'Element']} {card[u'Cost']} \u00B7 ({card[u'Code']}) {multicard}"
+    else:
+        line1 = f"{card[u'Name_EN']} \u00B7 {card[u'Element']} {card[u'Cost']} \u00B7 ({card[u'Code']}{card[u'Rarity']}) {multicard}"
 
-    if card[u'Type_NA'] == "Summon":
+    if card[u'Type_EN'] == "Summon":
         line2 = f"{card[u'Type_EN']} \u00B7 {card[u'Category_1']}"
     else:
         line2 = f"{card[u'Type_EN']} \u00B7 {card[u'Job_EN']} \u00B7 {card[u'Category_1']}"
-    line3 = f"{card[u'Text_EN']}"
+
+    line3 = ''
+
+    for line in card[u'Text_EN']:
+        line3 += f"{line}\n"
     line4 = f"{card[u'Power']}"
 
     # Modify return string based on whether card has power or not
-    if card[u'Power'] == "":
+    if card[u'Power'] is None:
         finished_string = f"{line1}\n{line2}\n{line3}"
     else:
-        finished_string = f"{line1}\n{line2}\n{line3}\n{line4}"
+        finished_string = f"{line1}\n{line2}\n{line3}{line4}"
 
-    # Replace EX Burst
-    finished_string = finished_string.replace('[[ex]]', '')
-    finished_string = finished_string.replace('[[/]]', '')
-    finished_string = finished_string.replace('EX BURST', '\[EX BURST\]')
-
-    # Special Switch
-    finished_string = finished_string.replace(u"\u300a"u"\u0053"u"\u300b", '\[Special\]')
-
-    # Formatting Fixes
-    finished_string = finished_string.replace('[[', '<')
-    finished_string = finished_string.replace(']]', '>')
-    finished_string = finished_string.replace('<s>', '')
-    finished_string = finished_string.replace('</>', '')
-    finished_string = finished_string.replace('<i>', '')
-    finished_string = finished_string.replace('<br> ', '\n')
-    finished_string = finished_string.replace('<br>', '\n')
-
-    # Replace Logos
-    finished_string = finished_string.replace(u"\u571F", '(Earth)')
-    finished_string = finished_string.replace(u"\u6c34", '(Water)')
-    finished_string = finished_string.replace(u"\u706b", '(Fire)')
-    finished_string = finished_string.replace(u"\u98a8", '(Wind)')
-    finished_string = finished_string.replace(u"\u6c37", '(Ice)')
-    finished_string = finished_string.replace(u"\u5149", '(Light)')
-    finished_string = finished_string.replace(u"\u95c7", '(Dark)')
-    finished_string = finished_string.replace(u"\u96f7", '(Lightning)')
-
-    # Replace Fullwidth Numbers with normal numbers
-    finished_string = finished_string.replace(u"\uFF11", '(1)')
-    finished_string = finished_string.replace(u"\uFF12", '(2)')
-    finished_string = finished_string.replace(u"\uFF13", '(3)')
-    finished_string = finished_string.replace(u"\uFF14", '(4)')
-    finished_string = finished_string.replace(u"\uFF15", '(5)')
-    finished_string = finished_string.replace(u"\uFF16", '(6)')
-    finished_string = finished_string.replace(u"\uFF17", '(7)')
-    finished_string = finished_string.replace(u"\uFF18", '(8)')
-    finished_string = finished_string.replace(u"\uFF19", '(9)')
-    finished_string = finished_string.replace(u"\uFF10", '(0)')
-
-    # Non full width
-    finished_string = finished_string.replace(u"\u300a"u"\u0031"u"\u300b", '(1)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0032"u"\u300b", '(2)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0033"u"\u300b", '(3)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0034"u"\u300b", '(4)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0035"u"\u300b", '(5)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0036"u"\u300b", '(6)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0037"u"\u300b", '(7)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0038"u"\u300b", '(8)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0039"u"\u300b", '(9)')
-    finished_string = finished_string.replace(u"\u300a"u"\u0030"u"\u300b", '(0)')
-    finished_string = finished_string.replace(u"\u300a" + "X" + u"\u300b", '(X)')
-    finished_string = finished_string.replace(u"\u4E00"u"\u822C", '(Generic)')  # Fixes #1
-
-    # Tap Symbol
-    finished_string = finished_string.replace(u"\u30C0"u"\u30EB", '(Dull)')
-
-    # Weird bracket removal:
-    finished_string = finished_string.replace(u"\u300a", '')
-    finished_string = finished_string.replace(u"\u300b", '')
-    finished_string = finished_string.replace('&middot;', u"\u00B7")
-
-    # Double quotes with YURI?
-    finished_string = finished_string.replace("\"\"", '\"')
+    # Fixes #16, this is needed because markup converts []() to links
+    # This causes issue with outputting to discord via embed
+    finished_string = finished_string.replace('[', '\[')
+    finished_string = finished_string.replace(']', '\]')
 
     return finished_string
 
@@ -226,6 +136,8 @@ def getImage(code):
 
 
 def getimageURL(code):
+    """This function takes in a code as a string and returns an image link which points to square"""
+
     if re.search(r'[0-9]+\-[0-9]{3}[a-zA-Z]/[0-9]+\-[0-9]{3}[a-zA-Z]', code):
         URL = 'https://fftcg.cdn.sewest.net/images/cards/full/' + code[-6:] + '_eg.jpg'
     else:
@@ -234,9 +146,9 @@ def getimageURL(code):
     return URL
 
 
-# Takes in a list of dicts (cards) and returns a list of url's from square.
-
 def urlset(cards_list):
+    """This function takes in list of cards and creates a list of URL's and returns it as a list"""
+
     url_list = []
     for card in cards_list:
         if re.search(r'\/', card['Code']):
@@ -262,7 +174,7 @@ def loadJson(path):
     else:
         content = data.read().decode('utf-8')
         data = json.loads(content)
-        cards_list = data['cards']
+        cards_list = data
 
         return cards_list
 
@@ -362,15 +274,15 @@ def getPack(opusnumber, cards):
                 mycards.append(card)
 
         for x in range(0,len(mycards)):
-            if re.search(r'H', mycards[x]['Code']):
+            if re.search(r'H', mycards[x]['Rarity']):
                 heroics.append(mycards[x])
-            elif re.search(r'C', mycards[x]['Code']):
+            elif re.search(r'C', mycards[x]['Rarity']):
                 commons.append(mycards[x])
-            elif re.search(r'L', mycards[x]['Code']):
+            elif re.search(r'L', mycards[x]['Rarity']):
                 legendaries.append(mycards[x])
-            elif re.search(r'R', mycards[x]['Code']):
+            elif re.search(r'R', mycards[x]['Rarity']):
                 rares.append(mycards[x])
-            elif re.search(r'S', mycards[x]['Code']):
+            elif re.search(r'S', mycards[x]['Rarity']):
                 starters.append(mycards[x])
 
         random.shuffle(heroics)
@@ -408,7 +320,7 @@ def createstrawpoll(pollname, cards):
     options = []
 
     for x in range(len(cards)):
-        options.append(prettyTrice(f"{cards[x]['Name_NA']} {cards[x]['Code']}"))
+        options.append(prettyTrice(f"{cards[x]['Name_EN']} {cards[x]['Code']}{cards[x]['Rarity']}"))
 
     req = {'title': pollname, 'options': options}
 
