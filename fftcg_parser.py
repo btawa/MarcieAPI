@@ -421,8 +421,8 @@ def addimageurltojson(cards_list, image_list):
 
 def squaretomarcieapi(cards):
 
-    mykeys = ('Element', 'Name_EN', 'Cost', 'Code', 'Multicard', 'Type_EN', 'Category_1', 'Text_EN', 'Job_EN', 'Power',
-              'Ex_Burst', 'Set', 'Rarity')
+    mykeys = ('Rarity', 'Element', 'Name_EN', 'Cost', 'Multicard', 'Type_EN', 'Category_1', 'Text_EN', 'Job_EN', 'Power',
+              'Ex_Burst', 'Set', 'Code')
 
     for card in cards:
         for key in list(card):
@@ -435,6 +435,8 @@ def squaretomarcieapi(cards):
                         card[key] = False
                 elif key == 'Power':
                     if card[key] == "":
+                        card[key] = None
+                    elif card[key] == " ":
                         card[key] = None
                     elif re.search(r'\u2015', card[key]):
                         card[key] = None
@@ -449,6 +451,9 @@ def squaretomarcieapi(cards):
                         card[key] = card[key]
                     elif re.search(r'\/', card[key]):
                         card[key] = card[key]
+                    elif re.search(r'S', card[key]):
+                        card['Rarity'] = 'S'
+                        card[key] = card[key][:-1]
                     else:
                         card[key] = card[key][:-1]
                 elif key == "Cost":
