@@ -6,6 +6,7 @@ if sys.argv[1] == 'ffdecks':
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
+    promos = []
 
     with open('cards.json', 'w+') as outfile:
         json.dump(cards, outfile)
@@ -13,6 +14,13 @@ if sys.argv[1] == 'ffdecks':
     with open('imageurls.txt', 'w+') as outfile:
         for url in imageurlset:
             outfile.write(url + '\n')
+
+    with open('promos.json', 'w+') as outfile:
+        for card in cards:
+            if re.search(r'PR', card['Code']):
+                promos.append(card)
+        json.dump(promos, outfile)
+
 
 elif sys.argv[1] == 'square':
     square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
@@ -26,6 +34,7 @@ elif sys.argv[1] == 'square':
     with open('imageurls.txt', 'w+') as outfile:
         for url in imageurlset:
             outfile.write(url + '\n')
+
 
 else:
     pass
