@@ -91,6 +91,8 @@ def prettyCard(card):
     #  Prepping different lines for return
     if card['Rarity'] == "P":
         line1 = f"{card[u'Name_EN']} \u00B7 {card[u'Element']} {card[u'Cost']} \u00B7 ({card[u'Code']}) {multicard}"
+    elif re.search(r'\/', card['Code']):
+        line1 = f"{card[u'Name_EN']} \u00B7 {card[u'Element']} {card[u'Cost']} \u00B7 ({card[u'Code']}) {multicard}"
     else:
         line1 = f"{card[u'Name_EN']} \u00B7 {card[u'Element']} {card[u'Cost']} \u00B7 ({card[u'Code']}{card[u'Rarity']}) {multicard}"
 
