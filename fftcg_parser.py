@@ -465,6 +465,10 @@ def squaretomarcieapi(cards):
 
         card['Text_EN'] = card['Text_EN'].split('\n')
 
+        for line in range(len(card['Text_EN'])):
+            card['Text_EN'][line] = re.sub(r'^\s+', '', card['Text_EN'][line])
+            card['Text_EN'][line] = re.sub(r'\s+$', '', card['Text_EN'][line])
+
     myjson = json.dumps(cards)
     mydict = json.loads(myjson)
 
