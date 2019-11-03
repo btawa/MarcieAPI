@@ -31,7 +31,7 @@ elif sys.argv[1] == 'square':
     with open('square.json', 'w+') as outfile:
         json.dump(cards, outfile)
 
-    with open('ffdecks_imageurls.txt', 'w+') as outfile:
+    with open('square_imageurls.txt', 'w+') as outfile:
         for url in imageurlset:
             outfile.write(url + '\n')
 

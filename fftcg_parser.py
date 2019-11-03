@@ -154,13 +154,13 @@ def urlset(cards_list):
         if re.search(r'\/', card['Code']):
             for x in card['Code'].split('/'):
                 if re.search(r'H|R|P|C|L', x):
-                    url_list.append('https://storage.googleapis.com/marceapi-images/' + x + '_eg.jpg')
+                    url_list.append('https://storage.googleapis.com/marcieapi-images/' + x + '_eg.jpg')
                 else:
-                    url_list.append('https://storage.googleapis.com/marceapi-images/' + x + card['Rarity'] + '_eg.jpg')
+                    url_list.append('https://storage.googleapis.com/marcieapi-images/' + x + card['Rarity'] + '_eg.jpg')
         elif card['Rarity'] == "P":
-            url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + '_eg.jpg')
+            url_list.append('https://storage.googleapis.com/marcieapi-images/' + card['Code'] + '_eg.jpg')
         else:
-            url_list.append('https://storage.googleapis.com/marceapi-images/' + card['Code'] + card['Rarity'] + '_eg.jpg')
+            url_list.append('https://storage.googleapis.com/marcieapi-images/' + card['Code'] + card['Rarity'] + '_eg.jpg')
 
     return list(dict.fromkeys(url_list))
 
