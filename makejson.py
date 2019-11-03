@@ -1,5 +1,6 @@
 from fftcg_parser import *
 import sys
+import os
 
 if sys.argv[1] == 'ffdecks':
     ffdecks = loadJson('https://ffdecks.com/api/cards/basic')
@@ -10,10 +11,6 @@ if sys.argv[1] == 'ffdecks':
 
     with open('ffdecks.json', 'w+') as outfile:
         json.dump(cards, outfile)
-
-    with open('ffdecks_imageurls.txt', 'w+') as outfile:
-        for url in imageurlset:
-            outfile.write(url + '\n')
 
     with open('ffdecks_promos.json', 'w+') as outfile:
         for card in cards:
@@ -31,9 +28,6 @@ elif sys.argv[1] == 'square':
     with open('square.json', 'w+') as outfile:
         json.dump(cards, outfile)
 
-    with open('square_imageurls.txt', 'w+') as outfile:
-        for url in imageurlset:
-            outfile.write(url + '\n')
 
 elif sys.argv[1] == 'combine':
     with open('ffdecks_promos.json', 'r') as infile:
@@ -46,6 +40,10 @@ elif sys.argv[1] == 'combine':
 
     with open('combined.json', 'w+') as outfile:
         json.dump(combined, outfile)
+
+    os.remove('ffdecks.json')
+    os.remove('square.json')
+    os.remove('ffdecks_promos.json')
 
 else:
     pass
