@@ -70,6 +70,8 @@ def prettyCode(card):
 
     if card['Rarity'] == "P":
         line1 = f"{card['Code']} \u00B7 {card['Name_EN']} \u00B7 {card['Element']} {card['Cost']} \u00B7 {card['Type_EN']} {multicard}"
+    elif re.search(r'\/', card['Code']):
+        line1 = f"{card['Code']} \u00B7 {card['Name_EN']} \u00B7 {card['Element']} {card['Cost']} \u00B7 {card['Type_EN']} {multicard}"
     else:
         line1 = f"{card['Code']}{card['Rarity']} \u00B7 {card['Name_EN']} \u00B7 {card['Element']} {card['Cost']} \u00B7 {card['Type_EN']} {multicard}"
     return line1
@@ -412,7 +414,11 @@ def ffdeckstomarcieapi(listofdicts):
 def addimageurltojson(cards_list, image_list):
     for card in cards_list:
         for url in image_list:
-            if card['Code'] in url:
+            if re.search(r'\/', card['Code']):
+                if card['Code'].split('/')[0] in url:
+                    card['image_url'] = url
+
+            elif card['Code'] in url:
                 card['image_url'] = url
 
     return cards_list
