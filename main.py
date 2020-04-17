@@ -23,7 +23,7 @@ def hello(code):
     if checkAPI() is True:
         card_list = []
         for card in mycards:
-            if code in card['Code']:
+            if re.search('^' + code, card['Code']):
                 card_list.append(card)
 
         if len(card_list) == 1:
