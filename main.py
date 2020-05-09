@@ -2,7 +2,7 @@ from fftcg_parser import *
 import json
 from flask import Flask, escape, request, Response
 import re
-
+from cube_list import cube1
 
 app = Flask(__name__)
 
@@ -62,6 +62,22 @@ def hello2():
     else:
         return Response('401 Unauthorized API Key', 401)
 
+
+
+@app.route('/api/cube/')
+def get_cube():
+    if checkAPI() is True:
+
+        cube_cards = []
+
+        for carda in cube1:
+            for cardb in mycards:
+                if re.search('^' + carda ,cardb['Code']):
+                    cube_cards.append(cardb)
+
+        return Response(json.dumps(cube_cards), mimetype='application/json')
+    else:
+        return Response('401 Unauthorized API Key', 401)
 
 with open('cards.json', 'r') as infile:
     mycards = json.load(infile)
