@@ -22,6 +22,15 @@ if sys.argv[1] == 'ffdecks':
 elif sys.argv[1] == 'square':
     square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
     cards = squaretomarcieapi(square['cards'])
+
+    # Remove Duplicates
+    result = []
+    for card in cards:
+        if card not in result:
+            result.append(card)
+
+    cards = result
+
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
 
