@@ -373,7 +373,7 @@ def ffdeckstostring(string):
     string = string.replace('*', '')
     string = string.replace('%', '')
     string = string.replace('~', '')
-    string = string.replace(u"\u2015", "-") # Damage 5 from Opus X cards
+    string = string.replace(u"\u2015", "-")  # Damage 5 from Opus X cards
     string = string.replace(u"\u00fa", "u")  # Cuchulainn u with tilda
 
     return string
@@ -420,7 +420,7 @@ def addimageurltojson(cards_list, image_list):
                 if card['Code'].split('/')[0] in url:
                     card['image_url'] = url
 
-            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3})', url).group(1):
+            elif card['Code'] == re.search(r'PR-\d{3}|\d+-\d{3}', url):
                 card['image_url'] = url
 
     return cards_list
@@ -456,15 +456,7 @@ def squaretomarcieapi(cards):
                 elif key == "Rarity":
                     card[key] = card[key][0]
                 elif key == "Code":
-                    if re.search(r'PR-\d{3}', card[key]):
-                        card[key] = card[key]
-                    elif re.search(r'\/', card[key]):
-                        card[key] = card[key]
-                    elif re.search(r'S', card[key]):
-                        card['Rarity'] = 'S'
-                        card[key] = card[key][:-1]
-                    else:
-                        card[key] = card[key][:-1]
+                    card[key] = re.sub(r'(\d+-\d{3})([A-Z])', r'\1', card[key])
                 elif key == "Cost":
                     card[key] = int(card[key])
                 else:
