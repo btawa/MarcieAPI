@@ -458,6 +458,10 @@ def squaretomarcieapi(cards):
                     card[key] = card[key][0]
                 elif key == "Code":
                     card[key] = re.sub(r'(\d+-\d{3})([A-Z])', r'\1', card[key])
+                    if '/' in card['Code']:
+                        card[key] = card[key].split('/')[0]
+                    else:
+                        card[key] = card[key]
                 elif key == "Cost":
                     card[key] = int(card[key])
                 else:
