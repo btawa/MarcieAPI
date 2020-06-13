@@ -157,15 +157,15 @@ def urlset(cards_list):
     url_list = []
     for card in cards_list:
         if re.search(r'\/', card['Code']):
-            for x in card['Code'].split('/'):
-                if re.search(r'H|R|P|C|L', x):
-                    url_list.append('https://storage.googleapis.com/marcieapi-images/' + x + '_eg.jpg?' + str(int(time.time())))
+            for code in card['Code'].split('/'):
+                if 'PR' in code:
+                    url_list.append('https://storage.googleapis.com/marcieapi-images/' + code + '_eg.jpg')  #  + str(int(time.time())))
                 else:
-                    url_list.append('https://storage.googleapis.com/marcieapi-images/' + x + card['Rarity'] + '_eg.jpg?' + str(int(time.time())))
+                    url_list.append('https://storage.googleapis.com/marcieapi-images/' + code + card['Rarity'] + '_eg.jpg')  #  + str(int(time.time())))
         elif card['Rarity'] == "P":
-            url_list.append('https://storage.googleapis.com/marcieapi-images/' + card['Code'] + '_eg.jpg?' + str(int(time.time())))
+            url_list.append('https://storage.googleapis.com/marcieapi-images/' + card['Code'] + '_eg.jpg')  #  + str(int(time.time())))
         else:
-            url_list.append('https://storage.googleapis.com/marcieapi-images/' + card['Code'] + card['Rarity'] + '_eg.jpg?' + str(int(time.time())))
+            url_list.append('https://storage.googleapis.com/marcieapi-images/' + card['Code'] + card['Rarity'] + '_eg.jpg')  #  + str(int(time.time())))
 
     return list(dict.fromkeys(url_list))
 
@@ -414,14 +414,15 @@ def ffdeckstomarcieapi(listofdicts):
 
 
 def addimageurltojson(cards_list, image_list):
+    currenttime = str(int(time.time()))
     for card in cards_list:
         for url in image_list:
             if re.search(r'\/', card['Code']):
                 if card['Code'].split('/')[0] in url:
-                    card['image_url'] = url
+                    card['image_url'] = url + '?' + currenttime
 
-            elif card['Code'] == re.search(r'PR-\d{3}|\d+-\d{3}', url):
-                card['image_url'] = url
+            elif '/' + card['Code'] in url:
+                card['image_url'] = url + '?' + currenttime
 
     return cards_list
 
