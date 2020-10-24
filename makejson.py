@@ -1,4 +1,4 @@
-from fftcg_parser import *
+from marcie_helper import *
 import sys
 import os
 

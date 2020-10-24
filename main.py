@@ -1,12 +1,15 @@
-from fftcg_parser import *
+from marcie_helper import *
 import json
 from flask import Flask, escape, request, Response
 import re
-from cube_list import cube1, cube2
+from cube_list import opus10_cube, opus11_cube
 
 app = Flask(__name__)
 
+
 def checkAPI():
+    """ This function is used to validate the API_KEY used in this API"""
+
     args = request.args
 
     with open('settings.json', 'r') as myfile:
@@ -19,9 +22,12 @@ def checkAPI():
 
 
 @app.route('/api/card/<code>')
-def hello(code):
+def getCard(code):
+    """ This function is used to grab a specific card by code"""
+
+    card_list = []
+
     if checkAPI() is True:
-        card_list = []
         for card in mycards:
             if re.search('^' + code, card['Code']):
                 card_list.append(card)
@@ -35,7 +41,9 @@ def hello(code):
 
 
 @app.route('/api/set/<opus>')
-def set_grab(opus):
+def getSet(opus):
+    """ This function is used to grab a whole set by opus number from the API"""
+
     try:
         opus = int(opus)
     except:
@@ -56,44 +64,31 @@ def set_grab(opus):
 
 
 @app.route('/api/')
-def hello2():
+def getAllCards():
+    """ This function will return all cards in the API"""
+
     if checkAPI() is True:
         return Response(json.dumps(mycards), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
 
 
+@app.route('/api/cube/<opusnum>')
+def getCube(opusnum):
+    """ This function will return a list of cards which are part of an all-star cube.  The cube information comes
+    from cube_list.py which contains the list of each card code in the cube"""
 
-@app.route('/api/cube/')
-def get_cube():
+    cube_cards = []
+
     if checkAPI() is True:
-
-        cube_cards = []
-
-        for carda in cube2:
-            for cardb in mycards:
-                if re.search('^' + carda ,cardb['Code']):
-                    cube_cards.append(cardb)
-
-        return Response(json.dumps(cube_cards), mimetype='application/json')
-    else:
-        return Response('401 Unauthorized API Key', 401)
-
-
-@app.route('/api/legacycube/<cubenumber>')
-def get_legacycube(cubenumber):
-    if checkAPI() is True:
-        
-        if cubenumber == '1':
-            ourcube = cube1
-        elif cubenumber == '2':
-            ourcube = cube2
-
-        cube_cards = []
+        if opusnum == '10':
+            ourcube = opus10_cube
+        elif opusnum == '11':
+            ourcube = opus11_cube
 
         for carda in ourcube:
             for cardb in mycards:
-                if re.search('^' + carda ,cardb['Code']):
+                if re.search('^' + carda, cardb['Code']):
                     cube_cards.append(cardb)
 
         return Response(json.dumps(cube_cards), mimetype='application/json')
