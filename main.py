@@ -2,7 +2,7 @@ from fftcg_parser import *
 import json
 from flask import Flask, escape, request, Response
 import re
-from cube_list import cube1
+from cube_list import cube1, cube2
 
 app = Flask(__name__)
 
@@ -70,7 +70,7 @@ def get_cube():
 
         cube_cards = []
 
-        for carda in cube1:
+        for carda in cube2:
             for cardb in mycards:
                 if re.search('^' + carda ,cardb['Code']):
                     cube_cards.append(cardb)
@@ -78,6 +78,28 @@ def get_cube():
         return Response(json.dumps(cube_cards), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
+
+
+@app.route('/api/legacycube/<cubenumber>')
+def get_legacycube(cubenumber):
+    if checkAPI() is True:
+        
+        if cubenumber == '1':
+            ourcube = cube1
+        elif cubenumber == '2':
+            ourcube = cube2
+
+        cube_cards = []
+
+        for carda in ourcube:
+            for cardb in mycards:
+                if re.search('^' + carda ,cardb['Code']):
+                    cube_cards.append(cardb)
+
+        return Response(json.dumps(cube_cards), mimetype='application/json')
+    else:
+        return Response('401 Unauthorized API Key', 401)
+
 
 with open('cards.json', 'r') as infile:
     mycards = json.load(infile)
