@@ -217,7 +217,8 @@ def addimageurltojson(cards_list, image_list):
 
 
 def addjapaneseurls(cards):
-    root_url = "http://www.square-enix-shop.com/jp/ff-tcg/card/cimg/large/opus"
+    #root_url = "http://www.square-enix-shop.com/jp/ff-tcg/card/cimg/large/opus"
+    root_url = "https://storage.googleapis.com/marcieapi-images/jp/"
     regex = re.compile('([0-9]+)(-[0-9]+)([A-Z])')
 
     final = []
@@ -226,7 +227,7 @@ def addjapaneseurls(cards):
             set = re.search(regex, card['image_url']).group(1)
             cardnum = re.search(regex, card['image_url']).group(2)
             rarity = re.search(regex, card['image_url']).group(3)
-            card['image_url_jp'] = root_url + set + '/' + set + cardnum + rarity + ".png"
+            card['image_url_jp'] = root_url + set + cardnum + rarity + ".png"
             final.append(card)
 
     return final
