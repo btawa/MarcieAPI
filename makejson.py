@@ -33,6 +33,7 @@ elif sys.argv[1] == 'square':
 
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
+    cards = addjapaneseurls(cards)
 
     with open('square.json', 'w+') as outfile:
         json.dump(cards, outfile)
