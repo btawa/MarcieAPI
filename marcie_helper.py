@@ -212,7 +212,6 @@ def addimageurltojson(cards_list, image_list):
                 card['image_url'] = url
                 card['image_url_jp'] = None
 
-
     return cards_list
 
 
@@ -221,16 +220,14 @@ def addjapaneseurls(cards):
     root_url = "https://storage.googleapis.com/marcieapi-images/jp/"
     regex = re.compile('([0-9]+)(-[0-9]+)([A-Z])')
 
-    final = []
     for card in cards:
         if re.search(regex, card['image_url']):
             set = re.search(regex, card['image_url']).group(1)
             cardnum = re.search(regex, card['image_url']).group(2)
             rarity = re.search(regex, card['image_url']).group(3)
             card['image_url_jp'] = root_url + set + cardnum + rarity + ".png"
-            final.append(card)
 
-    return final
+    return cards
 
 
 # This function makes a cards JSON from square and writes it to cards.json in the local directory
