@@ -74,10 +74,16 @@ def prettyTrice(string):
     string = string.replace(u"\u95c7", 'Dark')
     string = string.replace(u"\u96f7", 'Lightning')
 
+    # Special Ability [[s]]text[[/]] - Shadow Flare on 7-034
+    string = re.sub(r"\[\[s\]\](.*?)\[\[/\]\]", r"\1", string)
+
+    # Italics [[i]]text[[/]]
+    string = re.sub(r"\[\[i\]\](.*?)\[\[/\]\]", r"\1", string)
+
     # Replace EX Burst
-    string = string.replace('[[ex]]', '')
-    string = string.replace('[[/]]', '')
-    string = string.replace('EX BURST', '[EX BURST]')
+    string = re.sub(r"\[\[ex\]\]EX BURST\s*\[\[/\]\]\s*", "[EX BURST] ", string)
+    string = re.sub(r"\[\[ex\]\]EX BURS\s*\[\[/\]\]T\s*", "[EX BURST] ", string)
+    string = re.sub(r"^EX BURST", "[EX BURST]", string)
 
     # Special Switch
     string = string.replace(u"\u300a"u"\u0053"u"\u300b", '[Special]')
@@ -88,24 +94,6 @@ def prettyTrice(string):
 
     # Horizontal Bar
     string = string.replace(u'\u2015', '')
-
-    # Formatting Fixes
-    string = string.replace('[[', '<')
-    string = string.replace(']]', '>')
-    string = string.replace('<s>', '')
-    string = string.replace('</>', '')
-    string = string.replace('<i>', '')
-    string = string.replace('<br> ', '\n')
-    string = string.replace('<br>', '\n')
-
-    # Formatting Fixes
-    string = string.replace('[[', '<')
-    string = string.replace(']]', '>')
-    string = string.replace('<s>', '')
-    string = string.replace('</>', '')
-    string = string.replace('<i>', '')
-    string = string.replace('<br> ', '\n')
-    string = string.replace('<br>', '\n')
 
     # Replace Fullwidth Numbers with normal numbers
     string = string.replace(u"\uFF11", '1')
@@ -126,8 +114,11 @@ def prettyTrice(string):
     # Tap Symbol
     string = string.replace(u"\u30C0"u"\u30EB", 'Dull')
 
-    # Double quotes with YURI?
+    # Yuri 7-128 has double quotes around some of his abilities which are printed on card as one quote
     string = string.replace("\"\"", '\"')
+
+    # New lines [[br]]
+    string = re.sub(r"\[\[br\]\]", "\n", string)
 
     return string
 
@@ -277,11 +268,15 @@ def squaretomarcieapi(cards):
             else:
                 del card[key]
 
-        card['Text_EN'] = card['Text_EN'].split('\n')
+        if card['Text_EN']:
+            card['Text_EN'] = card['Text_EN'].split('\n')
+            for line in range(len(card['Text_EN'])):
+                card['Text_EN'][line] = re.sub(r'^\s+', '', card['Text_EN'][line])
+                card['Text_EN'][line] = re.sub(r'\s+$', '', card['Text_EN'][line])
+        else:
+            card["Text_EN"] = None
 
-        for line in range(len(card['Text_EN'])):
-            card['Text_EN'][line] = re.sub(r'^\s+', '', card['Text_EN'][line])
-            card['Text_EN'][line] = re.sub(r'\s+$', '', card['Text_EN'][line])
+
 
     myjson = json.dumps(cards)
     mydict = json.loads(myjson)
