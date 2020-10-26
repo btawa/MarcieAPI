@@ -260,10 +260,11 @@ def squaretomarcieapi(cards):
                 elif key == "Rarity":
                     card[key] = card[key][0]
                 elif key == "Code":
-                    if re.search(r'PR-\d{3}', card[key]):
+                    if re.search(r'^PR-\d{3}', card[key]):
                         card[key] = card[key]
                     elif re.search(r'\/', card[key]):
-                        card[key] = card[key]
+                        r = re.compile(r"^(.*?)([A-Z])(\/)(.*)") # Reprint logic only grab first (6-006C)/1-011C
+                        card[key] = re.search(r, card[key]).group(1) # and strip letter output (6-006)
                     elif re.search(r'S', card[key]):
                         card['Rarity'] = 'S'
                         card[key] = card[key][:-1]
