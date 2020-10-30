@@ -7,6 +7,7 @@ if sys.argv[1] == 'ffdecks':
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
+    cards = addjapaneseurls(cards)
     promos = []
 
     with open('ffdecks.json', 'w+') as outfile:

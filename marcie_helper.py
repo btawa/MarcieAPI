@@ -170,13 +170,25 @@ def ffdeckstomarcieapi(listofdicts):
         converted[card]['Category_1'] = ffdeckstostring(listofdicts[card]['category'])
         converted[card]['Code'] = ffdeckstostring(listofdicts[card]['serial_number'])
         converted[card]['Cost'] = listofdicts[card]['cost']
-        converted[card]['Element'] = ffdeckstostring(listofdicts[card]['element'])
         converted[card]['Ex_Burst'] = listofdicts[card]['is_ex_burst']
         converted[card]['Job_EN'] = ffdeckstostring(listofdicts[card]['job'])
         converted[card]['Multicard'] = listofdicts[card]['is_multi_playable']
         converted[card]['Name_EN'] = ffdeckstostring(listofdicts[card]['name'])
         converted[card]['Power'] = listofdicts[card]['power']
         converted[card]['Rarity'] = ffdeckstostring(listofdicts[card]['rarity'])[0]
+
+        # Ffdecks sets element to null if it's a dual element card and then gives list of
+        # elements under elements.
+        if listofdicts[card]['element'] is None:
+            element_text = ''
+            for element in range(len(listofdicts[card]['elements'])):
+                if element != len(listofdicts[card]['elements']) - 1:
+                    element_text += listofdicts[card]['elements'][element] + "/"
+                else:
+                    element_text += listofdicts[card]['elements'][element]
+            converted[card]['Element'] = element_text
+        else:
+            converted[card]['Element'] = ffdeckstostring(listofdicts[card]['element'])
 
         if re.search(r'^PR-', converted[card]['Code']):
             converted[card]['Set'] = None
