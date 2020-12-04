@@ -25,10 +25,13 @@ elif sys.argv[1] == 'square':
     cards = squaretomarcieapi(square['cards'])
 
     # Remove Duplicates
+    added_codes = []
     result = []
     for card in cards:
-        if card not in result:
+        if card['Code'] not in result:
+            added_codes.append(card['Code'])
             result.append(card)
+
 
     cards = result
 
