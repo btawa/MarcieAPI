@@ -28,7 +28,7 @@ elif sys.argv[1] == 'square':
     added_codes = []
     result = []
     for card in cards:
-        if card['Code'] not in result:
+        if card['Code'] not in added_codes:
             added_codes.append(card['Code'])
             result.append(card)
 
