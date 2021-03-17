@@ -1,6 +1,6 @@
 from marcie_helper import *
 import json
-from flask import Flask, escape, request, Response
+from flask import Flask, escape, request, Response, render_template
 import re
 from cube_list import opus10_cube, opus11_cube, opus12_cube
 
@@ -96,6 +96,23 @@ def getCube(opusnum):
         return Response(json.dumps(cube_cards), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
+
+
+@app.route('/api/matches/image')
+def imageMatches():
+    if checkAPI() is True:
+        with open('/root/opusscraper/matches.json', 'r') as f:
+            matches = json.load(f)
+        return render_template('matches.html', urls=matches)
+
+
+@app.route('/api/matches')
+def urlMatches():
+    if checkAPI() is True:
+        with open('/root/opusscraper/matches.json', 'r') as f:
+            matches = json.load(f)
+
+        return Response(json.dumps(matches), mimetype='application/json')
 
 
 with open('cards.json', 'r') as infile:

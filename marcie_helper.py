@@ -90,7 +90,7 @@ def prettyTrice(string):
 
     # Bubble used for Multicard and Ex_Burst
     string = string.replace(u'\u25CB', 'True')
-    string = string.replace(u'\u3007', 'False')
+    string = string.replace(u'\u3007', 'True')
 
     # Horizontal Bar
     string = string.replace(u'\u2015', '')
