@@ -2,7 +2,7 @@ from marcie_helper import *
 import json
 from flask import Flask, escape, request, Response, render_template
 import re
-from cube_list import opus10_cube, opus11_cube, opus12_cube
+from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
 
 app = Flask(__name__)
 
@@ -87,6 +87,8 @@ def getCube(opusnum):
             ourcube = opus11_cube
         elif opusnum == '12':
             ourcube = opus12_cube
+        elif opusnum == '13':
+            ourcube = opus13_cube
 
         for carda in ourcube:
             for cardb in mycards:
