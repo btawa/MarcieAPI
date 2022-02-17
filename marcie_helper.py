@@ -211,7 +211,7 @@ def addimageurltojson(cards_list, image_list):
                     card['image_url'] = url
                     card['image_url_jp'] = None
 
-            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3}|B-\d{3})', url).group(1):
+            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3}|B-\d{3}|C-\d{3})', url).group(1):
                 card['image_url'] = url
                 card['image_url_jp'] = None
 
@@ -261,7 +261,10 @@ def squaretomarcieapi(cards):
                     else:
                         card[key] = int(card[key])
                 elif key == "Rarity":
-                    card[key] = card[key][0]
+                    if card[key]:
+                        card[key] = card[key][0]
+                    else:
+                        card[key] = "T"
                 elif key == "Code":
                     if re.search(r'^PR-\d{3}', card[key]):
                         card[key] = card[key]
@@ -274,10 +277,16 @@ def squaretomarcieapi(cards):
                     elif re.search(r'B', card[key]):
                         card['Rarity'] = 'B'
                         card[key] = card[key]
+                    elif re.search(r'C-\d{3}', card[key]):
+                        card['Rarity'] = "T"
+                        card[key] = card[key]
                     else:
                         card[key] = card[key][:-1]
                 elif key == "Cost":
-                    card[key] = int(card[key])
+                    if card[key]:
+                        card[key] = int(card[key])
+                    else:
+                        card[key] = 0
                 else:
                     card[key] = prettyTrice(card[key])
             else:
