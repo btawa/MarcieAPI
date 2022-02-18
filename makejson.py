@@ -1,8 +1,7 @@
 from marcie_helper import *
-import sys
-import os
 
-if sys.argv[1] == 'ffdecks':
+
+def pull_ffdecks_promos() -> list:
     ffdecks = loadJson('https://ffdecks.com/api/cards/basic')
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
@@ -10,17 +9,34 @@ if sys.argv[1] == 'ffdecks':
     cards = addjapaneseurls(cards)
     promos = []
 
-    with open('ffdecks.json', 'w+') as outfile:
-        json.dump(cards, outfile)
 
-    with open('ffdecks_promos.json', 'w+') as outfile:
-        for card in cards:
-            if re.search(r'PR-0[1-9]', card['Code']):
-                promos.append(card)
-        json.dump(promos, outfile)
+    for card in cards:
+        if re.search(r'PR-0[1-9]', card['Code']):
+            promos.append(card)
+
+    return promos
 
 
-elif sys.argv[1] == 'square':
+def pull_ffdecks_cards() -> list:
+    ffdecks = loadJson('https://ffdecks.com/api/cards/basic')
+    cards = ffdeckstomarcieapi(ffdecks['cards'])
+    imageurlset = urlset(cards)
+    cards = addimageurltojson(cards, imageurlset)
+    cards = addjapaneseurls(cards)
+    promos = []
+    non_promos = []
+
+
+    for card in cards:
+        if re.search(r'PR-0[1-9]', card['Code']):
+            promos.append(card)
+        else:
+            non_promos.append(card)
+
+    return non_promos
+
+
+def pull_square_cards() -> list:
     square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
     cards = squaretomarcieapi(square['cards'])
 
@@ -39,25 +55,8 @@ elif sys.argv[1] == 'square':
     cards = addimageurltojson(cards, imageurlset)
     cards = addjapaneseurls(cards)
 
-    with open('square.json', 'w+') as outfile:
-        json.dump(cards, outfile)
+    return cards
 
 
-elif sys.argv[1] == 'combine':
-    with open('ffdecks_promos.json', 'r') as infile:
-        promos = json.load(infile)
-
-    with open('square.json', 'r') as infile:
-        cards = json.load(infile)
-
-    combined = cards + promos
-
-    with open('combined.json', 'w+') as outfile:
-        json.dump(combined, outfile)
-
-    os.remove('ffdecks.json')
-    os.remove('square.json')
-    os.remove('ffdecks_promos.json')
-
-else:
-    pass
+def combine_cards(card_group_1, card_group_2) -> list:
+    return card_group_1 + card_group_2

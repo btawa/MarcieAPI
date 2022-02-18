@@ -3,8 +3,10 @@ import json
 from flask import Flask, escape, request, Response, render_template
 import re
 from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
+from CardClient import CardClient
 
 app = Flask(__name__)
+card_client = CardClient()
 
 
 def checkAPI():
@@ -21,6 +23,15 @@ def checkAPI():
         return False
 
 
+@app.route('/api/new', methods=['POST'])
+def get_new_cards():
+    try:
+        card_client.pull_new_cards()
+        return Response(status=201)
+    except:
+        return Response(status=400)
+
+
 @app.route('/api/card/<code>')
 def getCard(code):
     """ This function is used to grab a specific card by code"""
@@ -28,7 +39,7 @@ def getCard(code):
     card_list = []
 
     if checkAPI() is True:
-        for card in mycards:
+        for card in card_client.cards:
             if re.search('^' + code, card['Code']):
                 card_list.append(card)
 
@@ -51,7 +62,7 @@ def getSet(opus):
 
     if checkAPI() is True:
         card_list = []
-        for card in mycards:
+        for card in card_client.cards:
             if card['Set'] is None:
                 pass
             else:
@@ -68,7 +79,8 @@ def getAllCards():
     """ This function will return all cards in the API"""
 
     if checkAPI() is True:
-        return Response(json.dumps(mycards), mimetype='application/json')
+        print(card_client.lastfetch)
+        return Response(json.dumps(card_client.cards), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
 
@@ -91,7 +103,7 @@ def getCube(opusnum):
             ourcube = opus13_cube
 
         for carda in ourcube:
-            for cardb in mycards:
+            for cardb in card_client.cards:
                 if re.search('^' + carda, cardb['Code']):
                     cube_cards.append(cardb)
 
@@ -115,10 +127,6 @@ def urlMatches():
             matches = json.load(f)
 
         return Response(json.dumps(matches), mimetype='application/json')
-
-
-with open('cards.json', 'r') as infile:
-    mycards = json.load(infile)
 
 
 if __name__ == '__main__':

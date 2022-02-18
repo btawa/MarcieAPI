@@ -8,15 +8,15 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 
 
-def getimageURL(code):
-    """This function takes in a code as a string and returns an image link which points to square"""
-
-    if re.search(r'[0-9]+\-[0-9]{3}[a-zA-Z]/[0-9]+\-[0-9]{3}[a-zA-Z]', code):
-        URL = 'https://fftcg.cdn.sewest.net/images/cards/full/' + code[-6:] + '_eg.jpg'
-    else:
-        URL = 'https://fftcg.cdn.sewest.net/images/cards/full/' + code + '_eg.jpg'
-
-    return URL
+# def getimageURL(code):
+#     """This function takes in a code as a string and returns an image link which points to square"""
+#
+#     if re.search(r'[0-9]+\-[0-9]{3}[a-zA-Z]/[0-9]+\-[0-9]{3}[a-zA-Z]', code):
+#         URL = 'https://fftcg.cdn.sewest.net/images/cards/full/' + code[-6:] + '_eg.jpg'
+#     else:
+#         URL = 'https://fftcg.cdn.sewest.net/images/cards/full/' + code + '_eg.jpg'
+#
+#     return URL
 
 
 def urlset(cards_list):
@@ -32,7 +32,7 @@ def urlset(cards_list):
                 else:
                     url_list.append(
                         'https://storage.googleapis.com/marcieapi-images/' + x + card['Rarity'] + '_eg.jpg')
-        elif card['Rarity'] == "P":
+        elif card['Rarity'] in ["P","B"]:
             url_list.append(
                 'https://storage.googleapis.com/marcieapi-images/' + card['Code'] + '_eg.jpg')
         else:
@@ -211,7 +211,7 @@ def addimageurltojson(cards_list, image_list):
                     card['image_url'] = url
                     card['image_url_jp'] = None
 
-            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3})', url).group(1):
+            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3}|B-\d{3}|C-\d{3})', url).group(1):
                 card['image_url'] = url
                 card['image_url_jp'] = None
 
@@ -261,7 +261,10 @@ def squaretomarcieapi(cards):
                     else:
                         card[key] = int(card[key])
                 elif key == "Rarity":
-                    card[key] = card[key][0]
+                    if card[key]:
+                        card[key] = card[key][0]
+                    else:
+                        card[key] = "T"
                 elif key == "Code":
                     if re.search(r'^PR-\d{3}', card[key]):
                         card[key] = card[key]
@@ -271,10 +274,19 @@ def squaretomarcieapi(cards):
                     elif re.search(r'S', card[key]):
                         card['Rarity'] = 'S'
                         card[key] = card[key][:-1]
+                    elif re.search(r'B', card[key]):
+                        card['Rarity'] = 'B'
+                        card[key] = card[key]
+                    elif re.search(r'C-\d{3}', card[key]):
+                        card['Rarity'] = "T"
+                        card[key] = card[key]
                     else:
                         card[key] = card[key][:-1]
                 elif key == "Cost":
-                    card[key] = int(card[key])
+                    if card[key]:
+                        card[key] = int(card[key])
+                    else:
+                        card[key] = 0
                 else:
                     card[key] = prettyTrice(card[key])
             else:
@@ -294,4 +306,3 @@ def squaretomarcieapi(cards):
     mydict = json.loads(myjson)
 
     return mydict
-
