@@ -1,11 +1,18 @@
-from marcie_helper import *
 import json
-import threading
-from flask import Flask, escape, request, Response, render_template
+import os
 import re
-from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
-from CardClient import CardClient
+import threading
 
+from decouple import Config, RepositoryEnv
+from flask import Flask, request, Response, render_template
+
+from CardClient import CardClient
+from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
+from marcie_helper import *
+
+SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+ENV_FILE = '.env'
+env_config = Config(RepositoryEnv(os.path.join(SCRIPT_PATH, ENV_FILE)))
 
 card_client = CardClient()
 card_client.init()
@@ -17,10 +24,7 @@ def checkAPI():
 
     args = request.args
 
-    with open('settings.json', 'r') as myfile:
-        settings = json.load(myfile)
-
-    if settings['API_KEY'] == args['api_key']:
+    if env_config.get('API_KEY') == args['api_key']:
         return True
     else:
         return False

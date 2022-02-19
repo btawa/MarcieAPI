@@ -1,5 +1,6 @@
-from makejson import pull_ffdecks_promos, pull_square_cards, combine_cards
 import time
+
+from makejson import pull_ffdecks_promos, pull_square_cards, combine_cards
 
 
 class CardClient():
