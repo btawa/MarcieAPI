@@ -1,5 +1,6 @@
 from marcie_helper import *
 import json
+import threading
 from flask import Flask, escape, request, Response, render_template
 import re
 from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
@@ -23,11 +24,35 @@ def checkAPI():
         return False
 
 
+@app.route('/api/lastfetch', methods=['GET'])
+def get_last_fetch():
+    if card_client.lock is False:
+        lastfetch = {'lastfetch': card_client.lastfetch}
+    else:
+        lastfetch = {'lastfetch': card_client.lastfetch, 'status': 'Fetch in progress'}
+
+    return Response(response=json.dumps(lastfetch), status=200, mimetype='application/json')
+
+
 @app.route('/api/new', methods=['POST'])
 def get_new_cards():
+    threads = list()
+
     try:
-        card_client.pull_new_cards()
-        return Response(status=201)
+        if card_client.lock is False:
+            card_client.lock = True
+
+            x = threading.Thread(target=card_client.pull_new_cards, args=())
+            threads.append(x)
+            x.start()
+
+            status = {'status': "Starting get_new_cards, this may take a while"}
+
+            return Response(response=json.dumps(status), status=201, mimetype='application/json')
+        else:
+            status = {'status': "CardClient is locked, is something already running?"}
+            return Response(response=json.dumps(status), status=401, mimetype='application/json')
+
     except:
         return Response(status=400)
 
