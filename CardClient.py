@@ -4,7 +4,7 @@ import time
 
 class CardClient():
     def __init__(self):
-        self.cards = combine_cards(pull_square_cards(),pull_ffdecks_promos())
+        self.cards = []
         self.lastfetch = time.time()
         self.lock = False
 
@@ -12,4 +12,7 @@ class CardClient():
         self.cards = combine_cards(pull_square_cards(),pull_ffdecks_promos())
         self.lastfetch = time.time()
         self.lock = False
+
+    def init(self):
+        self.pull_new_cards()
 

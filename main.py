@@ -6,8 +6,10 @@ import re
 from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
 from CardClient import CardClient
 
-app = Flask(__name__)
+
 card_client = CardClient()
+card_client.init()
+app = Flask(__name__)
 
 
 def checkAPI():
@@ -26,35 +28,41 @@ def checkAPI():
 
 @app.route('/api/lastfetch', methods=['GET'])
 def get_last_fetch():
-    if card_client.lock is False:
-        lastfetch = {'lastfetch': card_client.lastfetch}
-    else:
-        lastfetch = {'lastfetch': card_client.lastfetch, 'status': 'Fetch in progress'}
+    if checkAPI() is True:
+        if card_client.lock is False:
+            lastfetch = {'lastfetch': card_client.lastfetch}
+        else:
+            lastfetch = {'lastfetch': card_client.lastfetch, 'status': 'Fetch in progress'}
 
-    return Response(response=json.dumps(lastfetch), status=200, mimetype='application/json')
+        return Response(response=json.dumps(lastfetch), status=200, mimetype='application/json')
+    else:
+        return Response('401 Unauthorized API Key', 401)
 
 
 @app.route('/api/new', methods=['POST'])
 def get_new_cards():
-    threads = list()
+    if checkAPI() is True:
+        threads = list()
 
-    try:
-        if card_client.lock is False:
-            card_client.lock = True
+        try:
+            if card_client.lock is False:
+                card_client.lock = True
 
-            x = threading.Thread(target=card_client.pull_new_cards, args=())
-            threads.append(x)
-            x.start()
+                x = threading.Thread(target=card_client.pull_new_cards, args=())
+                threads.append(x)
+                x.start()
 
-            status = {'status': "Starting get_new_cards, this may take a while"}
+                status = {'status': "Starting get_new_cards, this may take a while"}
 
-            return Response(response=json.dumps(status), status=201, mimetype='application/json')
-        else:
-            status = {'status': "CardClient is locked, is something already running?"}
-            return Response(response=json.dumps(status), status=401, mimetype='application/json')
+                return Response(response=json.dumps(status), status=201, mimetype='application/json')
+            else:
+                status = {'status': "CardClient is locked, is something already running?"}
+                return Response(response=json.dumps(status), status=401, mimetype='application/json')
 
-    except:
-        return Response(status=400)
+        except:
+            return Response(status=400)
+    else:
+        return Response('401 Unauthorized API Key', 401)
 
 
 @app.route('/api/card/<code>')
