@@ -3,6 +3,7 @@ import json
 from flask import Flask, escape, request, Response, render_template
 import re
 from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
+import roman
 
 app = Flask(__name__)
 
