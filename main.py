@@ -89,27 +89,30 @@ def getCard(code):
         return Response('401 Unauthorized API Key', 401)
 
 
-@app.route('/api/set/<opus>')
-def getSet(opus):
-    """ This function is used to grab a whole set by opus number from the API"""
+# Square no longer labels things in the format `Opus X`, so set is broken
+# This will probably be deprecated and can just use `/card/15-` commenting out for now.
 
-    try:
-        opus = int(opus)
-    except:
-        return Response('500 Input is not a integer', 500)
-
-    if checkAPI() is True:
-        card_list = []
-        for card in card_client.cards:
-            if card['Set'] is None:
-                pass
-            else:
-                if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
-                    card_list.append(card)
-
-        return Response(json.dumps(card_list), mimetype='application/json')
-    else:
-        return Response('401 Unauthorized API Key', 401)
+# @app.route('/api/set/<opus>')
+# def getSet(opus):
+#     """ This function is used to grab a whole set by opus number from the API"""
+#
+#     try:
+#         opus = int(opus)
+#     except:
+#         return Response('500 Input is not a integer', 500)
+#
+#     if checkAPI() is True:
+#         card_list = []
+#         for card in card_client.cards:
+#             if card['Set'] is None:
+#                 pass
+#             else:
+#                 if int(opus) == int(roman.fromRoman(card['Set'].split()[1])):
+#                     card_list.append(card)
+#
+#         return Response(json.dumps(card_list), mimetype='application/json')
+#     else:
+#         return Response('401 Unauthorized API Key', 401)
 
 
 @app.route('/api/')
