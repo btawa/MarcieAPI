@@ -5,6 +5,7 @@ import threading
 
 from decouple import Config, RepositoryEnv
 from flask import Flask, request, Response, render_template
+import roman
 
 from CardClient import CardClient
 from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
