@@ -120,7 +120,6 @@ def getAllCards():
     """ This function will return all cards in the API"""
 
     if checkAPI() is True:
-        print(card_client.lastfetch)
         return Response(json.dumps(card_client.cards), mimetype='application/json')
     else:
         return Response('401 Unauthorized API Key', 401)
@@ -152,22 +151,24 @@ def getCube(opusnum):
     else:
         return Response('401 Unauthorized API Key', 401)
 
+@app.route('/api/links/<opusnum>')
+def get_square_images(opusnum):
+    square_root_url = "https://fftcg.cdn.sewest.net/images/cards/full/"
+    square_end_url = "_eg.jpg"
+    square_urls = []
 
-@app.route('/api/matches/image')
-def imageMatches():
     if checkAPI() is True:
-        with open('/root/opusscraper/matches.json', 'r') as f:
-            matches = json.load(f)
-        return render_template('matches.html', urls=matches)
+        try:
+            for card in card_client.cards:
+                if re.search(r'^' + opusnum + '-', card['Code']):
+                    image_url = f"{square_root_url}{card['Code']}{card['Rarity']}{square_end_url}"
+                    square_urls.append(image_url)
 
+        except:
+            return Response('Bad Request', 400)
 
-@app.route('/api/matches')
-def urlMatches():
-    if checkAPI() is True:
-        with open('/root/opusscraper/matches.json', 'r') as f:
-            matches = json.load(f)
-
-        return Response(json.dumps(matches), mimetype='application/json')
+        finally:
+            return Response(json.dumps(square_urls), mimetype='application/json')
 
 
 if __name__ == '__main__':
