@@ -1,9 +1,9 @@
 import json
+import logging
 import re
 import urllib.request
-import roman
-import logging
 
+import roman
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 
@@ -306,4 +306,3 @@ def squaretomarcieapi(cards):
     mydict = json.loads(myjson)
 
     return mydict
-
