@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import urllib.request
+import requests
 
 import roman
 
@@ -46,16 +47,13 @@ def urlset(cards_list):
 # card_list - list of cards
 
 def loadJson(path):
+
     try:
-        data = urllib.request.urlopen(path)
+        data = requests.get(path)
+        cards_list = json.loads(data.text)
+        return cards_list
     except:
         return
-    else:
-        content = data.read().decode('utf-8')
-        data = json.loads(content)
-        cards_list = data
-
-        return cards_list
 
 
 def prettyTrice(string):
