@@ -126,32 +126,33 @@ def prettyTrice(string):
 # different things.
 
 def ffdeckstostring(string):
-    string = string.replace('{s}', '[Special]')
-    string = string.replace('{a}', '(Water)')
-    string = string.replace('{w}', '(Wind)')
-    string = string.replace('{e}', '(Earth)')
-    string = string.replace('{f}', '(Fire)')
-    string = string.replace('{i}', '(Ice)')
-    string = string.replace('{l}', '(Lightning)')
-    string = string.replace('{d}', '(Dull)')
+    if string is not None:
+        string = string.replace('{s}', '[Special]')
+        string = string.replace('{a}', '(Water)')
+        string = string.replace('{w}', '(Wind)')
+        string = string.replace('{e}', '(Earth)')
+        string = string.replace('{f}', '(Fire)')
+        string = string.replace('{i}', '(Ice)')
+        string = string.replace('{l}', '(Lightning)')
+        string = string.replace('{d}', '(Dull)')
 
-    string = string.replace('{x}', '[EX BURST]')
-    string = string.replace('{0}', '(0)')
-    string = string.replace('{1}', '(1)')
-    string = string.replace('{2}', '(2)')
-    string = string.replace('{3}', '(3)')
-    string = string.replace('{4}', '(4)')
-    string = string.replace('{5}', '(5)')
-    string = string.replace('{6}', '(6)')
-    string = string.replace('{7}', '(7)')
-    string = string.replace('{8}', '(8)')
-    string = string.replace('{9}', '(9)')
+        string = string.replace('{x}', '[EX BURST]')
+        string = string.replace('{0}', '(0)')
+        string = string.replace('{1}', '(1)')
+        string = string.replace('{2}', '(2)')
+        string = string.replace('{3}', '(3)')
+        string = string.replace('{4}', '(4)')
+        string = string.replace('{5}', '(5)')
+        string = string.replace('{6}', '(6)')
+        string = string.replace('{7}', '(7)')
+        string = string.replace('{8}', '(8)')
+        string = string.replace('{9}', '(9)')
 
-    string = string.replace('*', '')
-    string = string.replace('%', '')
-    string = string.replace('~', '')
-    string = string.replace(u"\u2015", "-")  # Damage 5 from Opus X cards
-    string = string.replace(u"\u00fa", "u")  # Cuchulainn u with tilda
+        string = string.replace('*', '')
+        string = string.replace('%', '')
+        string = string.replace('~', '')
+        string = string.replace(u"\u2015", "-")  # Damage 5 from Opus X cards
+        string = string.replace(u"\u00fa", "u")  # Cuchulainn u with tilda
 
     return string
 
@@ -165,6 +166,7 @@ def ffdeckstomarcieapi(listofdicts):
         converted.append({})
 
     for card in range(0, len(listofdicts)):
+        print(listofdicts[card])
         converted[card]['Category_1'] = ffdeckstostring(listofdicts[card]['category'])
         converted[card]['Code'] = ffdeckstostring(listofdicts[card]['serial_number'])
         converted[card]['Cost'] = listofdicts[card]['cost']
@@ -232,6 +234,7 @@ def addjapaneseurls(cards):
 
 
 # This function makes a cards JSON from square and writes it to cards.json in the local directory
+# LEGACY
 
 def squaretomarcieapi(cards):
     mykeys = (
@@ -304,3 +307,101 @@ def squaretomarcieapi(cards):
     mydict = json.loads(myjson)
 
     return mydict
+
+
+# This function makes a cards JSON from square and writes it to cards.json in the local directory
+# NEW WIP
+
+def squaretomarcieapi2(cards):
+    mykeys = (
+    'Rarity', 'Element', 'Name_EN', 'Cost', 'Multicard', 'Type_EN', 'Category_1', 'Text_EN', 'Job_EN', 'Power',
+    'Ex_Burst', 'Set', 'Code')
+
+    key_map = [(key.lower(), key) for key in mykeys]
+    output_cards = []
+
+    for card in cards:
+        output_card = {}
+        for key in key_map:
+            input_key = key[0]  #
+            output_key = key[1]
+
+            if input_key == "multicard" or input_key == "ex_burst":
+                output_card[output_key] = prettyTrice(card[input_key])
+                if output_card[output_key] == "True":
+                    output_card[output_key] = True
+                else:
+                    output_card[output_key] = False
+
+            elif input_key == "power":
+                if card[input_key] == "":
+                    output_card[output_key] = None
+                elif card[input_key] == " ":
+                    output_card[output_key] = None
+                elif re.search(r'\u2015', card[input_key]):
+                    output_card[output_key] = None
+                elif re.search(r'\－', card[input_key]):
+                    output_card[output_key] = None
+                else:
+                    output_card[output_key] = int(card[input_key])
+
+            elif input_key == "rarity":
+                if card[input_key]:
+                    output_card[output_key] = card[input_key][0]
+                else:
+                    output_card[output_key] = "T"
+
+            elif input_key == "code":
+                if re.search(r'^PR-\d{3}', card[input_key]):
+                    output_card[output_key] = card[input_key]
+                elif re.search(r'\/', card[input_key]):
+                    r = re.compile(r"^(.*?)([A-Z])(\/)(.*)") # Reprint logic only grab first (6-006C)/1-011C
+                    output_card[output_key] = re.search(r, card[input_key]).group(1) # and strip letter output (6-006)
+                elif re.search(r'S', card[input_key]):
+                    output_card['rarity'] = 'S'
+                    output_card[output_key] = card[input_key][:-1]
+                elif re.search(r'B', card[input_key]):
+                    output_card['rarity'] = 'B'
+                    output_card[output_key] = card[input_key]
+                elif re.search(r'C-\d{3}', card[input_key]):
+                    output_card['rarity'] = "T"
+                    output_card[output_key] = card[input_key]
+                else:
+                    output_card[output_key] = card[input_key][:-1]
+
+            elif input_key == "cost":
+                if card[input_key]:
+                    output_card[output_key] = int(card[input_key])
+                else:
+                    output_card[output_key] = 0
+
+            elif input_key == "element":
+                if card[input_key]:
+                    element = prettyTrice("/".join(card[input_key]))
+                else:
+                    element = None
+
+                output_card[output_key] = element
+
+            elif input_key == "text_en":
+                if card[input_key]:
+                    output_card[output_key] = card[input_key].split('\n')
+                    for line in range(len(output_card[output_key])):
+                        output_card[output_key][line] = re.sub(r'^\s+', '', output_card[output_key][line])
+                        output_card[output_key][line] = re.sub(r'\s+$', '', output_card[output_key][line])
+                        output_card[output_key][line] = prettyTrice(output_card[output_key][line])
+                else:
+                    output_card[output_key] = None
+
+            elif input_key == "category_1":
+                if card[input_key]:
+                    output_card[output_key] = prettyTrice(card[input_key])
+                else:
+                    output_card[output_key] = None
+
+            else:
+                output_card[output_key] = prettyTrice(card[input_key])
+
+        output_cards.append(output_card)
+
+    return output_cards

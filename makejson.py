@@ -38,7 +38,7 @@ def pull_ffdecks_cards() -> list:
 
 def pull_square_cards() -> list:
     square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
-    cards = squaretomarcieapi(square['cards'])
+    cards = squaretomarcieapi2(square['cards']) # 2 is after Opus 21 Changes
 
     # Remove Duplicates
     added_codes = []
