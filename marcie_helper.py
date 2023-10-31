@@ -166,7 +166,6 @@ def ffdeckstomarcieapi(listofdicts):
         converted.append({})
 
     for card in range(0, len(listofdicts)):
-        print(listofdicts[card])
         converted[card]['Category_1'] = ffdeckstostring(listofdicts[card]['category'])
         converted[card]['Code'] = ffdeckstostring(listofdicts[card]['serial_number'])
         converted[card]['Cost'] = listofdicts[card]['cost']
