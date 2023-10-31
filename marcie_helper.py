@@ -384,11 +384,10 @@ def squaretomarcieapi2(cards):
 
             elif input_key == "text_en":
                 if card[input_key]:
-                    output_card[output_key] = card[input_key].split('\n')
+                    output_card[output_key] = prettyTrice(card[input_key]).split('\n')
                     for line in range(len(output_card[output_key])):
                         output_card[output_key][line] = re.sub(r'^\s+', '', output_card[output_key][line])
                         output_card[output_key][line] = re.sub(r'\s+$', '', output_card[output_key][line])
-                        output_card[output_key][line] = prettyTrice(output_card[output_key][line])
                 else:
                     output_card[output_key] = None
 
