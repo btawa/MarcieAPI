@@ -2,23 +2,22 @@ from marcie_helper import *
 
 
 def pull_ffdecks_promos() -> list:
-    ffdecks = loadJson('https://ffdecks.com/api/cards/basic')
+    ffdecks = loadFfdecks('https://ffdecks.com/api/cards/basic')
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
     cards = addjapaneseurls(cards)
     promos = []
 
-
     for card in cards:
-        if re.search(r'PR-0[1-9]', card['Code']):
+        if re.search(r'^PR-[0-9]+', card['Code']):
             promos.append(card)
 
     return promos
 
 
 def pull_ffdecks_cards() -> list:
-    ffdecks = loadJson('https://ffdecks.com/api/cards/basic')
+    ffdecks = loadFfdecks('https://ffdecks.com/api/cards/basic')
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
@@ -37,7 +36,7 @@ def pull_ffdecks_cards() -> list:
 
 
 def pull_square_cards() -> list:
-    square = loadJson('https://fftcg.square-enix-games.com/en/get-cards')
+    square = loadSquare('https://fftcg.square-enix-games.com/en/get-cards')
     cards = squaretomarcieapi2(square['cards']) # 2 is after Opus 21 Changes
 
     # Remove Duplicates

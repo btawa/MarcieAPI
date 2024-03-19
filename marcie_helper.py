@@ -46,14 +46,28 @@ def urlset(cards_list):
 # data - untouched JSON from file
 # card_list - list of cards
 
-def loadJson(path):
+def loadSquare(path):
 
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+
+    data = '{"language":"en","text":"","type":[],"element":[],"cost":[],"rarity":[],"power":[],"category_1":[],"set":[],"multicard":"","ex_burst":"","code":"","special":"","exactmatch":0}'
+
+    try:
+        data = requests.post(path, data=data, headers=headers)
+        cards_list = json.loads(data.text)
+        return cards_list
+    except Exception as e:
+        logging.error(e)
+
+def loadFfdecks(path):
     try:
         data = requests.get(path)
         cards_list = json.loads(data.text)
         return cards_list
-    except:
-        return
+    except Exception as e:
+        logging.error(e)
 
 
 def prettyTrice(string):
@@ -397,8 +411,15 @@ def squaretomarcieapi2(cards):
                 else:
                     output_card[output_key] = None
 
+            elif input_key == "set":
+                if type(card[input_key]) is list:
+                    output_card[output_key] = card[input_key][0] # As of 3/18 square has everything is len 1
+                elif type(card[input_key]) is str:
+                    output_card[output_key] = card[input_key]
+
             else:
                 output_card[output_key] = prettyTrice(card[input_key])
+
 
         output_cards.append(output_card)
 
