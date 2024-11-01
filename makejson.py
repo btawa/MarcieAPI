@@ -2,37 +2,48 @@ from marcie_helper import *
 
 
 def pull_ffdecks_promos() -> list:
-    ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
-    cards = ffdeckstomarcieapi(ffdecks['cards'])
-    imageurlset = urlset(cards)
-    cards = addimageurltojson(cards, imageurlset)
-    cards = addjapaneseurls(cards)
-    promos = []
 
-    for card in cards:
-        if re.search(r'^PR-[0-9]+', card['Code']):
-            promos.append(card)
+    try:
+        ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
+        cards = ffdeckstomarcieapi(ffdecks['cards'])
+        imageurlset = urlset(cards)
+        cards = addimageurltojson(cards, imageurlset)
+        cards = addjapaneseurls(cards)
+        promos = []
 
-    return promos
+        for card in cards:
+            if re.search(r'^PR-[0-9]+', card['Code']):
+                promos.append(card)
+
+        return promos
+
+    except:
+        return []
 
 
 def pull_ffdecks_cards() -> list:
-    ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
-    cards = ffdeckstomarcieapi(ffdecks['cards'])
-    imageurlset = urlset(cards)
-    cards = addimageurltojson(cards, imageurlset)
-    cards = addjapaneseurls(cards)
-    promos = []
-    non_promos = []
 
 
-    for card in cards:
-        if re.search(r'PR-0[1-9]', card['Code']):
-            promos.append(card)
-        else:
-            non_promos.append(card)
+    try:
+        ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
+        cards = ffdeckstomarcieapi(ffdecks['cards'])
+        imageurlset = urlset(cards)
+        cards = addimageurltojson(cards, imageurlset)
+        cards = addjapaneseurls(cards)
+        promos = []
+        non_promos = []
 
-    return non_promos
+
+        for card in cards:
+            if re.search(r'PR-0[1-9]', card['Code']):
+                promos.append(card)
+            else:
+                non_promos.append(card)
+
+        return non_promos
+
+    except:
+        return []
 
 
 def pull_square_cards() -> list:
