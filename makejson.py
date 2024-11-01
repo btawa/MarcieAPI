@@ -2,7 +2,7 @@ from marcie_helper import *
 
 
 def pull_ffdecks_promos() -> list:
-    ffdecks = loadFfdecks('https://ffdecks.com/api/cards/basic')
+    ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
@@ -17,7 +17,7 @@ def pull_ffdecks_promos() -> list:
 
 
 def pull_ffdecks_cards() -> list:
-    ffdecks = loadFfdecks('https://ffdecks.com/api/cards/basic')
+    ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
     cards = ffdeckstomarcieapi(ffdecks['cards'])
     imageurlset = urlset(cards)
     cards = addimageurltojson(cards, imageurlset)
