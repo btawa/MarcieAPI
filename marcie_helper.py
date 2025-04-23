@@ -217,6 +217,7 @@ def ffdeckstomarcieapi(listofdicts):
 
 
 def addimageurltojson(cards_list, image_list):
+
     for card in cards_list:
         for url in image_list:
             if re.search(r'\/', card['Code']):
@@ -224,7 +225,7 @@ def addimageurltojson(cards_list, image_list):
                     card['image_url'] = url
                     card['image_url_jp'] = None
 
-            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3}|B-\d{3}|C-\d{3})', url).group(1):
+            elif card['Code'] == re.search(r'(PR-\d{3}|\d+-\d{3}|B-\d{3}|C-\d{3}|Re-\d{3})', url).group(1):
                 card['image_url'] = url
                 card['image_url_jp'] = None
 
