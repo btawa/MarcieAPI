@@ -342,7 +342,7 @@ def squaretomarcieapi2(cards):
 
             if input_key == "multicard" or input_key == "ex_burst":
                 output_card[output_key] = prettyTrice(card[input_key])
-                if output_card[output_key] == "True":
+                if output_card[output_key] == "True" or output_card[output_key] == "1":
                     output_card[output_key] = True
                 else:
                     output_card[output_key] = False
