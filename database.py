@@ -2,11 +2,12 @@ import sqlite3
 import json
 import time
 import logging
+import os
 from typing import List, Dict, Optional
 
 class CardDatabase:
-    def __init__(self, db_path: str = "cards.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        self.db_path = db_path or os.getenv("DATABASE_PATH", "cards.db")
         self.init_database()
     
     def init_database(self):
