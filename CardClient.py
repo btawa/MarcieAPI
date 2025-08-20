@@ -13,8 +13,8 @@ class CardClient():
         self.db = CardDatabase()
         
         # Simulation flags for testing
-        self.simulate_square_down = True
-        self.simulate_ffdecks_down = True
+        self.simulate_square_down = False
+        self.simulate_ffdecks_down = False
 
     def pull_new_cards(self):
         """Fetch cards from APIs and upsert to database"""
