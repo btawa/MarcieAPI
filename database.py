@@ -73,10 +73,10 @@ class CardDatabase:
                 prep_start = time.time()
                 batch_data = []
                 for card in cards:
-                    # Convert Text_EN list to string if needed
+                    # Convert Text_EN list to JSON if needed
                     text_en = card.get('Text_EN')
                     if isinstance(text_en, list):
-                        text_en = ' '.join(text_en) if text_en else None
+                        text_en = json.dumps(text_en) if text_en else None
                     
                     # Parse code for additional metadata
                     from card_code_parser import parse_card_code
@@ -165,7 +165,7 @@ class CardDatabase:
                     'Multicard': bool(row['multicard']) if row['multicard'] is not None else False,
                     'Type_EN': row['type_en'],
                     'Category_1': row['category_1'],
-                    'Text_EN': row['text_en'],
+                    'Text_EN': json.loads(row['text_en']) if row['text_en'] else None,
                     'Job_EN': row['job_en'],
                     'Power': row['power'],
                     'Ex_Burst': bool(row['ex_burst']) if row['ex_burst'] is not None else False,
@@ -195,7 +195,7 @@ class CardDatabase:
                     'Multicard': bool(row['multicard']) if row['multicard'] is not None else False,
                     'Type_EN': row['type_en'],
                     'Category_1': row['category_1'],
-                    'Text_EN': row['text_en'],
+                    'Text_EN': json.loads(row['text_en']) if row['text_en'] else None,
                     'Job_EN': row['job_en'],
                     'Power': row['power'],
                     'Ex_Burst': bool(row['ex_burst']) if row['ex_burst'] is not None else False,
