@@ -9,7 +9,7 @@ import roman
 
 from CardClient import CardClient
 from cube_list import opus10_cube, opus11_cube, opus12_cube, opus13_cube
-from marcie_helper import *
+from marcie_helper_new import *
 
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 ENV_FILE = '.env'
@@ -47,14 +47,12 @@ def get_last_fetch():
 @app.route('/api/new', methods=['POST'])
 def get_new_cards():
     if checkAPI() is True:
-        threads = list()
-
         try:
             if card_client.lock is False:
                 card_client.lock = True
 
-                x = threading.Thread(target=card_client.pull_new_cards, args=())
-                threads.append(x)
+                # Use daemon thread to ensure cleanup on app shutdown
+                x = threading.Thread(target=card_client.pull_new_cards, daemon=True)
                 x.start()
 
                 status = {'status': "Starting get_new_cards, this may take a while"}
@@ -62,10 +60,13 @@ def get_new_cards():
                 return Response(response=json.dumps(status), status=201, mimetype='application/json')
             else:
                 status = {'status': "CardClient is locked, is something already running?"}
-                return Response(response=json.dumps(status), status=401, mimetype='application/json')
+                return Response(response=json.dumps(status), status=409, mimetype='application/json')
 
-        except:
-            return Response(status=400)
+        except Exception as e:
+            # Reset lock on error and log the issue
+            card_client.lock = False
+            logging.error(f"Error in get_new_cards: {e}")
+            return Response(status=500)
     else:
         return Response('401 Unauthorized API Key', 401)
 
@@ -154,21 +155,27 @@ def getCube(opusnum):
 @app.route('/api/links/<opusnum>')
 def get_square_images(opusnum):
     square_root_url = "https://fftcg.cdn.sewest.net/images/cards/full/"
-    square_end_url = "_eg.jpg"
+    marcie_root_url = "https://storage.googleapis.com/marcieapi-images/"
     square_urls = []
 
     if checkAPI() is True:
         try:
             for card in card_client.cards:
                 if re.search(r'^' + opusnum + '-', card['Code']):
-                    image_url = f"{square_root_url}{card['Code']}{card['Rarity']}{square_end_url}"
-                    square_urls.append(image_url)
+                    # Get the image URL from database and convert to Square's CDN
+                    image_url = card.get('image_url')
+                    if image_url:
+                        # Replace marcie API base URL with Square's CDN URL
+                        square_url = image_url.replace(marcie_root_url, square_root_url)
+                        square_urls.append(square_url)
 
         except:
             return Response('Bad Request', 400)
 
         finally:
             return Response(json.dumps(square_urls), mimetype='application/json')
+
+
 
 
 if __name__ == '__main__':

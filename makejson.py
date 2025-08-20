@@ -1,4 +1,4 @@
-from marcie_helper import *
+from marcie_helper_new import *
 
 
 def pull_ffdecks_promos() -> list:
