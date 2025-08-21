@@ -6,6 +6,7 @@ from functools import wraps
 
 from decouple import Config, RepositoryEnv
 from flask import Flask, request, Response, render_template, redirect, url_for, session, flash
+from urllib.parse import unquote
 import roman
 
 from CardClient import CardClient
@@ -316,10 +317,12 @@ def admin_add_card():
                          success=success)
 
 
-@app.route('/admin/card/<code>', methods=['GET', 'POST'])
+@app.route('/admin/card/<path:code>', methods=['GET', 'POST'])
 @require_admin_auth
 def admin_edit_card(code):
     """Edit individual card"""
+    # URL decode the card code to handle slashes
+    code = unquote(code)
     # Find the card
     card = None
     for c in card_client.cards:
@@ -376,10 +379,12 @@ def admin_edit_card(code):
                          success=success)
 
 
-@app.route('/admin/card/<code>/delete', methods=['POST'])
+@app.route('/admin/card/<path:code>/delete', methods=['POST'])
 @require_admin_auth
 def admin_delete_card(code):
     """Delete a card"""
+    # URL decode the card code to handle slashes
+    code = unquote(code)
     try:
         # Find the card first
         card_exists = any(c['Code'] == code for c in card_client.cards)

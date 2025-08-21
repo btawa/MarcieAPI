@@ -131,27 +131,29 @@ class CardCodeParser:
         return ParsedCardCode(
             full_code=code,
             base_code=base_code,
-            primary_rarity=rarity or "B",  # Boss cards use B rarity
+            primary_rarity=rarity,  # Use actual rarity from code, empty if none
             variant_type="boss"
         )
     
     @staticmethod
     def _parse_promo_code(code: str) -> ParsedCardCode:
         """Parse promo codes like 'PR-055'."""
+        base_code, rarity = CardCodeParser._extract_base_and_rarity(code)
         return ParsedCardCode(
             full_code=code,
-            base_code=code,
-            primary_rarity="P",  # Promos use P rarity
+            base_code=base_code,
+            primary_rarity=rarity,  # Use actual rarity from code, empty if none
             variant_type="promo"
         )
     
     @staticmethod
     def _parse_special_code(code: str) -> ParsedCardCode:
         """Parse special codes like 'C-001'."""
+        base_code, rarity = CardCodeParser._extract_base_and_rarity(code)
         return ParsedCardCode(
             full_code=code,
-            base_code=code,
-            primary_rarity="T",  # Special cards often use T (tournament/special)
+            base_code=base_code,
+            primary_rarity=rarity,  # Use actual rarity from code, empty if none
             variant_type="special"
         )
     

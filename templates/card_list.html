@@ -253,8 +253,8 @@
                     <td>{{ card.Power or '-' }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a href="/admin/card/{{ card.Code }}" class="edit-btn" style="padding: 4px 8px; font-size: 12px;">Edit</a>
-                            <button onclick="deleteCard('{{ card.Code }}', '{{ card.Name_EN or 'Unnamed Card' }}')" class="delete-btn">Delete</button>
+                            <a href="/admin/card/{{ card.Code | urlencode }}" class="edit-btn" style="padding: 4px 8px; font-size: 12px;">Edit</a>
+                            <button onclick="deleteCard('{{ card.Code | urlencode }}', '{{ card.Name_EN or 'Unnamed Card' }}')" class="delete-btn">Delete</button>
                         </div>
                     </td>
                 </tr>
@@ -306,12 +306,14 @@
     </div>
     
     <script>
-        function deleteCard(cardCode, cardName) {
+        function deleteCard(encodedCardCode, cardName) {
+            // Decode for display
+            const cardCode = decodeURIComponent(encodedCardCode);
             if (confirm(`Are you sure you want to delete card "${cardCode}" (${cardName})?\n\nThis action cannot be undone.`)) {
                 // Create a form and submit it for deletion
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '/admin/card/' + encodeURIComponent(cardCode) + '/delete';
+                form.action = '/admin/card/' + encodedCardCode + '/delete';
                 
                 // Add CSRF protection if needed (optional)
                 const input = document.createElement('input');
