@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Management - Marcie API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .nav-links a:hover {
+            color: #007bff;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .section h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        .section p {
+            margin-bottom: 20px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .file-input {
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin: 0;">Database Management</h1>
+            <div class="nav-links">
+                {% if session.admin_username %}
+                    <span>Welcome, {{ session.admin_username }}</span>
+                    <a href="/admin/cards">Card Management</a>
+                    <a href="/admin/logout">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if message %}
+            <div class="alert alert-{{ message_type or 'success' }}">
+                {{ message }}
+            </div>
+        {% endif %}
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_cards }}</div>
+                <div class="stat-label">Total Cards in Database</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="last-fetch-display">{{ last_fetch or 'Never' }}</div>
+                <div class="stat-label">Last Data Fetch</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Export Database</h2>
+            <p>Download the complete card database as a JSON file. This will include all card data currently stored in the system.</p>
+            <a href="/admin/management/export" class="btn btn-success">Download Database JSON</a>
+        </div>
+
+        <div class="section">
+            <h2>Import Database</h2>
+            <p>
+                <strong>Warning:</strong> This will only work if the database is empty. If cards exist, the import will be rejected to prevent data conflicts.
+            </p>
+            <form method="POST" action="/admin/management/import" enctype="multipart/form-data">
+                <input type="file" name="backup_file" accept=".json" class="file-input" required>
+                <br>
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to import this backup? This can only be done if the database is empty.')">
+                    Import Backup
+                </button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Fetch New Cards</h2>
+            <p>Trigger a fetch of new cards from the data source. This may take several minutes to complete.</p>
+            <button onclick="fetchNewCards()" class="btn" id="fetch-btn">Fetch New Cards</button>
+            <div id="fetch-status" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+
+        <div class="section" style="border-color: #dc3545; background-color: #f8d7da;">
+            <h2 style="color: #721c24;">Danger Zone</h2>
+            <p style="color: #721c24;">
+                <strong>⚠️ WARNING:</strong> This will permanently delete ALL cards from the database. This action cannot be undone!
+                Only use this if you want to completely clear the database before importing a backup.
+            </p>
+            <button onclick="clearDatabase()" class="btn btn-danger">Clear All Database</button>
+            <div id="clear-status" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Convert epoch timestamp to readable format on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const lastFetchElement = document.getElementById('last-fetch-display');
+            const lastFetchValue = lastFetchElement.textContent.trim();
+            
+            // Check if it's a number (epoch timestamp)
+            if (lastFetchValue && !isNaN(lastFetchValue) && lastFetchValue !== 'Never') {
+                const timestamp = parseFloat(lastFetchValue);
+                const date = new Date(timestamp * 1000); // Convert to milliseconds
+                
+                // Format to local time with readable format
+                const options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    timeZoneName: 'short'
+                };
+                
+                const readableTime = date.toLocaleString(undefined, options);
+                lastFetchElement.textContent = readableTime;
+                lastFetchElement.title = `Epoch timestamp: ${lastFetchValue}`;
+            }
+        });
+
+        function fetchNewCards() {
+            const btn = document.getElementById('fetch-btn');
+            const status = document.getElementById('fetch-status');
+            
+            btn.disabled = true;
+            btn.textContent = 'Fetching...';
+            status.textContent = 'Starting fetch process...';
+            status.style.color = '#007bff';
+
+            fetch('/admin/management/fetch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                status.textContent = data.status || 'Fetch completed';
+                status.style.color = '#28a745';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Fetch New Cards';
+                    status.textContent = '';
+                }, 3000);
+            })
+            .catch(error => {
+                status.textContent = 'Error: ' + error.message;
+                status.style.color = '#dc3545';
+                btn.disabled = false;
+                btn.textContent = 'Fetch New Cards';
+            });
+        }
+
+        function clearDatabase() {
+            // First confirmation
+            if (!confirm('⚠️ WARNING: This will delete ALL cards from the database!\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to continue?')) {
+                return;
+            }
+
+            // Second confirmation with typing requirement
+            const confirmText = prompt(
+                '🔥 FINAL WARNING 🔥\n\n' +
+                'You are about to PERMANENTLY DELETE all cards from the database.\n\n' +
+                'To confirm this destructive action, please type exactly:\nDELETEME\n\n' +
+                '(case sensitive)'
+            );
+
+            if (confirmText !== 'DELETEME') {
+                if (confirmText !== null) { // User didn't cancel, but typed wrong text
+                    alert('❌ Confirmation text did not match. Database clear cancelled for your safety.');
+                }
+                return;
+            }
+
+            // Proceed with clearing
+            const statusDiv = document.getElementById('clear-status');
+            const btn = event.target;
+            
+            btn.disabled = true;
+            btn.textContent = 'Clearing...';
+            statusDiv.textContent = 'Clearing database...';
+            statusDiv.style.color = '#dc3545';
+
+            fetch('/admin/management/clear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusDiv.textContent = data.message || 'Database cleared successfully!';
+                    statusDiv.style.color = '#28a745';
+                    
+                    // Refresh page after 2 seconds to show updated stats
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    statusDiv.textContent = data.message || 'Failed to clear database';
+                    statusDiv.style.color = '#dc3545';
+                }
+            })
+            .catch(error => {
+                statusDiv.textContent = 'Error: ' + error.message;
+                statusDiv.style.color = '#dc3545';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Clear All Database';
+            });
+        }
+    </script>
+</body>
+</html>

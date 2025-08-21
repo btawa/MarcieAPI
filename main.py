@@ -405,6 +405,174 @@ def admin_delete_card(code):
         return f"Error deleting card: {str(e)}", 500
 
 
+@app.route('/admin/management')
+@require_admin_auth
+def admin_management():
+    """Database management page"""
+    total_cards = card_client.db.get_card_count()
+    
+    # Get last fetch time from card_client if available
+    last_fetch = getattr(card_client, 'lastfetch', None)
+    if last_fetch and last_fetch != 'never':
+        try:
+            # Convert timestamp to readable format if it's a number
+            if isinstance(last_fetch, (int, float)):
+                import datetime
+                last_fetch = datetime.datetime.fromtimestamp(last_fetch).strftime('%Y-%m-%d %H:%M:%S')
+        except:
+            pass
+    
+    return render_template('management.html', 
+                         total_cards=total_cards,
+                         last_fetch=last_fetch or 'Never')
+
+
+@app.route('/admin/management/export')
+@require_admin_auth
+def admin_export_database():
+    """Export complete database as JSON"""
+    try:
+        import datetime
+        
+        cards_data = card_client.cards
+        response_data = json.dumps(cards_data, indent=2)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"marcie_cards_backup_{timestamp}.json"
+        
+        response = Response(
+            response_data,
+            mimetype='application/json',
+            headers={'Content-Disposition': f'attachment; filename={filename}'}
+        )
+        return response
+        
+    except Exception as e:
+        logging.error(f"Error exporting database: {e}")
+        return f"Error exporting database: {str(e)}", 500
+
+
+@app.route('/admin/management/import', methods=['GET', 'POST'])
+@require_admin_auth
+def admin_import_database():
+    """Import database from JSON backup"""
+    # Redirect GET requests back to management page
+    if request.method == 'GET':
+        return redirect(url_for('admin_management'))
+    
+    message = None
+    message_type = 'danger'
+    
+    try:
+        # Check if database is empty
+        if card_client.db.get_card_count() > 0:
+            message = "Import rejected: Database is not empty. Can only import into an empty database to prevent conflicts."
+        else:
+            # Get uploaded file
+            if 'backup_file' not in request.files:
+                message = "No file uploaded"
+            else:
+                file = request.files['backup_file']
+                if file.filename == '':
+                    message = "No file selected"
+                else:
+                    # Read and parse JSON
+                    file_content = file.read().decode('utf-8')
+                    cards_data = json.loads(file_content)
+                    
+                    if not isinstance(cards_data, list):
+                        message = "Invalid file format: Expected JSON array of cards"
+                    else:
+                        # Clear database and import new data
+                        if card_client.db.save_cards(cards_data, 'import'):
+                            # Update in-memory cards
+                            card_client.cards = cards_data
+                            message = f"Successfully imported {len(cards_data)} cards from backup"
+                            message_type = 'success'
+                        else:
+                            message = "Failed to import cards to database"
+    
+    except json.JSONDecodeError:
+        message = "Invalid JSON file"
+    except Exception as e:
+        logging.error(f"Error importing database: {e}")
+        message = f"Error importing database: {str(e)}"
+    
+    # Redirect back with message
+    total_cards = card_client.db.get_card_count()
+    last_fetch = getattr(card_client, 'lastfetch', 'Never')
+    
+    return render_template('management.html',
+                         total_cards=total_cards,
+                         last_fetch=last_fetch,
+                         message=message,
+                         message_type=message_type)
+
+
+@app.route('/admin/management/fetch', methods=['POST'])
+@require_admin_auth
+def admin_fetch_new_cards():
+    """Admin endpoint to fetch new cards - requires admin authentication"""
+    try:
+        if card_client.lock is False:
+            card_client.lock = True
+            
+            # Use daemon thread to ensure cleanup on app shutdown
+            x = threading.Thread(target=card_client.pull_new_cards, daemon=True)
+            x.start()
+            
+            status = {'status': "Starting get_new_cards, this may take a while"}
+            return Response(response=json.dumps(status), status=201, mimetype='application/json')
+        else:
+            status = {'status': "CardClient is locked, is something already running?"}
+            return Response(response=json.dumps(status), status=409, mimetype='application/json')
+            
+    except Exception as e:
+        # Reset lock on error and log the issue
+        card_client.lock = False
+        logging.error(f"Error in admin_fetch_new_cards: {e}")
+        status = {'status': f"Error: {str(e)}"}
+        return Response(response=json.dumps(status), status=500, mimetype='application/json')
+
+
+@app.route('/admin/management/clear', methods=['POST'])
+@require_admin_auth
+def admin_clear_database():
+    """Admin endpoint to clear all cards from database - requires admin authentication"""
+    try:
+        # Get current count for logging
+        current_count = card_client.db.get_card_count()
+        
+        # Clear the database
+        if card_client.db.clear_database():
+            # Clear in-memory cards as well
+            card_client.cards = []
+            
+            logging.info(f"Admin {session.get('admin_username', 'unknown')} cleared database of {current_count} cards")
+            
+            response_data = {
+                'success': True,
+                'message': f'Successfully cleared {current_count} cards from database',
+                'cleared_count': current_count
+            }
+            return Response(response=json.dumps(response_data), status=200, mimetype='application/json')
+        else:
+            response_data = {
+                'success': False,
+                'message': 'Failed to clear database'
+            }
+            return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
+            
+    except Exception as e:
+        logging.error(f"Error in admin_clear_database: {e}")
+        response_data = {
+            'success': False,
+            'message': f'Error clearing database: {str(e)}'
+        }
+        return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
+
+
 
 
 if __name__ == '__main__':

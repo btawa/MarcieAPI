@@ -200,6 +200,7 @@
             <div style="display: flex; gap: 10px; align-items: center;">
                 {% if session.admin_username %}
                     <span style="color: #6c757d; font-size: 14px;">Welcome, {{ session.admin_username }}</span>
+                    <a href="/admin/management" style="color: #6c757d; text-decoration: none; font-size: 14px;">Management</a>
                     <a href="/admin/logout" style="color: #6c757d; text-decoration: none; font-size: 14px;">Logout</a>
                 {% endif %}
             </div>

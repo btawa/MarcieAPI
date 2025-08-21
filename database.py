@@ -363,3 +363,24 @@ class CardDatabase:
         except Exception as e:
             logging.error(f"Failed to delete card {code}: {e}")
             return False
+    
+    def get_card_count(self) -> int:
+        """Get total number of cards in database"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT COUNT(*) FROM cards')
+            return cursor.fetchone()[0]
+    
+    def clear_database(self) -> bool:
+        """Clear all cards from database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM cards')
+                cursor.execute('DELETE FROM fetch_history')
+                conn.commit()
+                logging.info("Database cleared successfully")
+                return True
+        except Exception as e:
+            logging.error(f"Failed to clear database: {e}")
+            return False
