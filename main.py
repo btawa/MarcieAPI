@@ -288,7 +288,7 @@ def admin_add_card():
                     'Multicard': bool(request.form.get('multicard')),
                     'Ex_Burst': bool(request.form.get('ex_burst')),
                     'image_url': request.form.get('image_url'),
-                    'Text_EN': request.form.get('text_en').split('\n') if request.form.get('text_en') else None
+                    'Text_EN': [line.rstrip('\r') for line in request.form.get('text_en').split('\n')] if request.form.get('text_en') else None
                 }
                 
                 # Save to database
@@ -352,7 +352,7 @@ def admin_edit_card(code):
                 'Multicard': bool(request.form.get('multicard')),
                 'Ex_Burst': bool(request.form.get('ex_burst')),
                 'image_url': request.form.get('image_url'),
-                'Text_EN': request.form.get('text_en').split('\n') if request.form.get('text_en') else None
+                'Text_EN': [line.rstrip('\r') for line in request.form.get('text_en').split('\n')] if request.form.get('text_en') else None
             }
             
             # Update in database
