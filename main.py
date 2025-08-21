@@ -188,6 +188,12 @@ def get_square_images(opusnum):
             return Response(json.dumps(square_urls), mimetype='application/json')
 
 
+@app.route('/admin/')
+def admin_index():
+    """Redirect /admin/ to cards page"""
+    return redirect(url_for('admin_cards'))
+
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     """Admin login page"""
