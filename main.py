@@ -234,12 +234,6 @@ def admin_cards():
     per_page = 20
     search_term = request.args.get('search', '').strip()
     
-    # Force refresh from database for admin operations (fixes Docker multi-process issues)
-    try:
-        card_client.cards = card_client.db.get_all_cards()
-    except Exception as e:
-        logging.error(f"Failed to refresh cards: {e}")
-    
     # Filter cards based on search
     filtered_cards = card_client.cards
     if search_term:
@@ -329,17 +323,10 @@ def admin_edit_card(code):
     """Edit individual card"""
     # URL decode the card code to handle slashes
     code = unquote(code)
-    
-    # Force refresh from database for admin operations (fixes Docker multi-process issues)
-    try:
-        card_client.cards = card_client.db.get_all_cards()
-    except Exception as e:
-        logging.error(f"Failed to refresh cards: {e}")
-    
     # Find the card
     card = None
     for c in card_client.cards:
-        if c.get('Code') == code:
+        if c['Code'] == code:
             card = c
             break
     
