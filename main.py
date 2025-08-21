@@ -371,25 +371,15 @@ def admin_edit_card(code):
             # Update in database
             result = card_client.db.update_card(code, updated_card)
             if result:
-                # Force refresh from database to sync all worker processes
-                try:
-                    card_client.cards = card_client.db.get_all_cards()
-                    # Update the card variable for display
-                    for c in card_client.cards:
-                        if c.get('Code') == code:
-                            card.update(c)
-                            break
-                except Exception as e:
-                    logging.error(f"Failed to refresh cards after update: {e}")
-                    # Fallback to local memory update
-                    for i, c in enumerate(card_client.cards):
-                        if c['Code'] == code:
-                            card_client.cards[i].update(updated_card)
-                            break
-                    card.update(updated_card)
+                # Update in memory as well
+                for i, c in enumerate(card_client.cards):
+                    if c['Code'] == code:
+                        card_client.cards[i].update(updated_card)
+                        break
                 
                 message = "Card updated successfully!"
                 success = True
+                card.update(updated_card)  # Update the card variable for display
             else:
                 message = "Failed to update card in database"
                 
