@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Card - Marcie API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .required {
+            color: #dc3545;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+            font-family: monospace;
+            line-height: 1.4;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 8px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .text-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .code-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;">Add New Card</h1>
+            {% if session.admin_username %}
+                <a href="/admin/logout" style="color: #6c757d; text-decoration: none; font-size: 14px;">Logout</a>
+            {% endif %}
+        </div>
+        
+        {% if message %}
+            <div class="alert alert-{{ 'success' if success else 'error' }}">
+                {{ message }}
+            </div>
+        {% endif %}
+        
+        <form method="POST">
+            <div class="two-column">
+                <div>
+                    <div class="form-group">
+                        <label for="code">Card Code <span class="required">*</span></label>
+                        <input type="text" id="code" name="code" value="{{ request.form.get('code', '') if not success else '' }}" required 
+                               placeholder="e.g., 15-001H, PR-001" {{ 'readonly style="background-color: #f8f9fa;"' if success else '' }}>
+                        <div class="code-help">Must be unique. Format: Opus-Number + Rarity (e.g., 15-001H, PR-001)</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="name_en">Name (English)</label>
+                        <input type="text" id="name_en" name="name_en" value="{{ request.form.get('name_en', '') if not success else '' }}" 
+                               placeholder="Card name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="element">Element</label>
+                        <select id="element" name="element">
+                            <option value="">Select Element</option>
+                            <option value="Fire" {{ 'selected' if request.form.get('element') == 'Fire' and not success }}>Fire</option>
+                            <option value="Ice" {{ 'selected' if request.form.get('element') == 'Ice' and not success }}>Ice</option>
+                            <option value="Wind" {{ 'selected' if request.form.get('element') == 'Wind' and not success }}>Wind</option>
+                            <option value="Earth" {{ 'selected' if request.form.get('element') == 'Earth' and not success }}>Earth</option>
+                            <option value="Lightning" {{ 'selected' if request.form.get('element') == 'Lightning' and not success }}>Lightning</option>
+                            <option value="Water" {{ 'selected' if request.form.get('element') == 'Water' and not success }}>Water</option>
+                            <option value="Light" {{ 'selected' if request.form.get('element') == 'Light' and not success }}>Light</option>
+                            <option value="Dark" {{ 'selected' if request.form.get('element') == 'Dark' and not success }}>Dark</option>
+                        </select>
+                        <div class="code-help">For multi-element cards, use "/" to separate (e.g., Fire/Ice)</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cost">Cost</label>
+                        <input type="text" id="cost" name="cost" value="{{ request.form.get('cost', '') if not success else '' }}" 
+                               placeholder="e.g., 3, CP">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="type_en">Type</label>
+                        <input type="text" id="type_en" name="type_en" value="{{ request.form.get('type_en', '') if not success else '' }}" 
+                               placeholder="e.g., Forward, Backup, Summon">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job_en">Job</label>
+                        <input type="text" id="job_en" name="job_en" value="{{ request.form.get('job_en', '') if not success else '' }}" 
+                               placeholder="e.g., Warrior, Mage">
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="form-group">
+                        <label for="power">Power</label>
+                        <input type="number" id="power" name="power" value="{{ request.form.get('power', '') if not success else '' }}" 
+                               placeholder="e.g., 7000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category_1">Category</label>
+                        <input type="text" id="category_1" name="category_1" value="{{ request.form.get('category_1', '') if not success else '' }}" 
+                               placeholder="e.g., VII, XIII">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="set_name">Set</label>
+                        <input type="text" id="set_name" name="set_name" value="{{ request.form.get('set_name', '') if not success else '' }}" 
+                               placeholder="e.g., Opus XV">
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="multicard" name="multicard" {{ 'checked' if request.form.get('multicard') and not success }}>
+                            <label for="multicard">Multicard</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="ex_burst" name="ex_burst" {{ 'checked' if request.form.get('ex_burst') and not success }}>
+                            <label for="ex_burst">EX Burst</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image_url">Image URL</label>
+                        <input type="url" id="image_url" name="image_url" value="{{ request.form.get('image_url', '') if not success else '' }}" 
+                               placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="text_en">Card Text (English)</label>
+                <textarea id="text_en" name="text_en" placeholder="Enter each ability on a separate line...">{{ request.form.get('text_en', '') if not success else '' }}</textarea>
+                <div class="text-help">
+                    <strong>Important:</strong> Each line represents a separate ability or text section.<br>
+                    Use line breaks to separate different abilities (e.g., one line for each EX BURST, ability, etc.)
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Create Card</button>
+                <a href="/admin/cards" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Management - Marcie API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-box {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+        }
+        .cards-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .cards-table th,
+        .cards-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .cards-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+            position: sticky;
+            top: 0;
+        }
+        .cards-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .card-image {
+            width: 40px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .card-code {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-family: monospace;
+        }
+        .card-name {
+            font-weight: 500;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .element-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            margin: 1px;
+        }
+        .element-fire { background-color: #dc3545; }
+        .element-ice { background-color: #17a2b8; }
+        .element-wind { background-color: #28a745; }
+        .element-earth { background-color: #ffc107; color: #000; }
+        .element-lightning { background-color: #6f42c1; }
+        .element-water { background-color: #007bff; }
+        .element-light { background-color: #f8f9fa; color: #000; border: 1px solid #ddd; }
+        .element-dark { background-color: #6c757d; }
+        .edit-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .edit-btn:hover {
+            background-color: #45a049;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 8px 12px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            color: #007bff;
+            border-radius: 4px;
+        }
+        .pagination a:hover {
+            background-color: #e9ecef;
+        }
+        .pagination .current {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .pagination .ellipsis {
+            border: none;
+            color: #6c757d;
+        }
+        .results-info {
+            text-align: center;
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .cards-table {
+                font-size: 14px;
+            }
+            .cards-table th,
+            .cards-table td {
+                padding: 6px 8px;
+            }
+            .card-image {
+                width: 30px;
+                height: 42px;
+            }
+            .card-name {
+                max-width: 120px;
+            }
+            .search-box {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .pagination {
+                flex-wrap: wrap;
+                gap: 2px;
+            }
+            .pagination a, .pagination span {
+                padding: 6px 8px;
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .cards-table th:nth-child(4),
+            .cards-table td:nth-child(4),
+            .cards-table th:nth-child(5),
+            .cards-table td:nth-child(5) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin: 0;">Card Management</h1>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                {% if session.admin_username %}
+                    <span style="color: #6c757d; font-size: 14px;">Welcome, {{ session.admin_username }}</span>
+                    <a href="/admin/logout" style="color: #6c757d; text-decoration: none; font-size: 14px;">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <form method="GET" style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+            <input type="text" name="search" class="search-box" 
+                   placeholder="Search by card code or name..." 
+                   value="{{ search_term or '' }}" style="flex: 1; margin: 0;">
+            <button type="submit" class="edit-btn" style="padding: 8px 16px;">Search</button>
+            <a href="/admin/card/new" class="edit-btn" style="text-decoration: none; padding: 8px 16px;">+ Add New Card</a>
+        </form>
+        
+        <table class="cards-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Element</th>
+                    <th>Type</th>
+                    <th>Cost</th>
+                    <th>Power</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr>
+                    <td>
+                        {% if card.image_url %}
+                            <img src="{{ card.image_url }}" alt="{{ card.Code }}" class="card-image" loading="lazy">
+                        {% else %}
+                            <div class="card-image" style="background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #6c757d;">No Image</div>
+                        {% endif %}
+                    </td>
+                    <td><span class="card-code">{{ card.Code }}</span></td>
+                    <td><span class="card-name" title="{{ card.Name_EN or 'No Name' }}">{{ card.Name_EN or 'No Name' }}</span></td>
+                    <td>
+                        {% if card.Element %}
+                            {% set elements = card.Element.split('/') %}
+                            {% for element in elements %}
+                                <span class="element-badge element-{{ element.strip().lower() }}">{{ element.strip() }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color: #6c757d;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ card.Type_EN or '-' }}</td>
+                    <td>{{ card.Cost or '-' }}</td>
+                    <td>{{ card.Power or '-' }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/admin/card/{{ card.Code }}" class="edit-btn" style="padding: 4px 8px; font-size: 12px;">Edit</a>
+                            <button onclick="deleteCard('{{ card.Code }}', '{{ card.Name_EN or 'Unnamed Card' }}')" class="delete-btn">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="?page=1{% if search_term %}&search={{ search_term }}{% endif %}">&laquo;&laquo;</a>
+                <a href="?page={{ page - 1 }}{% if search_term %}&search={{ search_term }}{% endif %}">&laquo; Prev</a>
+            {% endif %}
+            
+            {% set start_page = [1, page - 2] | max %}
+            {% set end_page = [total_pages, page + 2] | min %}
+            
+            {% if start_page > 1 %}
+                <a href="?page=1{% if search_term %}&search={{ search_term }}{% endif %}">1</a>
+                {% if start_page > 2 %}
+                    <span class="ellipsis">...</span>
+                {% endif %}
+            {% endif %}
+            
+            {% for p in range(start_page, end_page + 1) %}
+                {% if p == page %}
+                    <span class="current">{{ p }}</span>
+                {% else %}
+                    <a href="?page={{ p }}{% if search_term %}&search={{ search_term }}{% endif %}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if end_page < total_pages %}
+                {% if end_page < total_pages - 1 %}
+                    <span class="ellipsis">...</span>
+                {% endif %}
+                <a href="?page={{ total_pages }}{% if search_term %}&search={{ search_term }}{% endif %}">{{ total_pages }}</a>
+            {% endif %}
+            
+            {% if page < total_pages %}
+                <a href="?page={{ page + 1 }}{% if search_term %}&search={{ search_term }}{% endif %}">Next &raquo;</a>
+                <a href="?page={{ total_pages }}{% if search_term %}&search={{ search_term }}{% endif %}">&raquo;&raquo;</a>
+            {% endif %}
+        </div>
+        <div class="results-info">
+            Showing {{ ((page - 1) * per_page) + 1 }} - {{ [page * per_page, total_cards] | min }} of {{ total_cards }} cards
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function deleteCard(cardCode, cardName) {
+            if (confirm(`Are you sure you want to delete card "${cardCode}" (${cardName})?\n\nThis action cannot be undone.`)) {
+                // Create a form and submit it for deletion
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/card/' + encodeURIComponent(cardCode) + '/delete';
+                
+                // Add CSRF protection if needed (optional)
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'confirm';
+                input.value = 'true';
+                form.appendChild(input);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

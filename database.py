@@ -230,3 +230,136 @@ class CardDatabase:
         
         current_time = time.time()
         return (current_time - last_fetch) > (max_age_hours * 3600)
+    
+    def update_card(self, code: str, card_data: Dict) -> bool:
+        """Update a specific card by code"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Convert Text_EN list to JSON if needed
+                text_en = card_data.get('Text_EN')
+                if isinstance(text_en, list):
+                    text_en = json.dumps(text_en) if text_en else None
+                
+                # Parse code for additional metadata
+                from card_code_parser import parse_card_code
+                parsed_code = parse_card_code(code)
+                
+                cursor.execute('''
+                    UPDATE cards SET
+                        base_code = ?,
+                        base_rarity = ?,
+                        variant_type = ?,
+                        secondary_code = ?,
+                        secondary_rarity = ?,
+                        element = ?,
+                        name_en = ?,
+                        cost = ?,
+                        multicard = ?,
+                        type_en = ?,
+                        category_1 = ?,
+                        text_en = ?,
+                        job_en = ?,
+                        power = ?,
+                        ex_burst = ?,
+                        set_name = ?,
+                        image_url = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE code = ?
+                ''', (
+                    parsed_code.base_code,
+                    parsed_code.primary_rarity,
+                    parsed_code.variant_type,
+                    parsed_code.secondary_code,
+                    parsed_code.secondary_rarity,
+                    card_data.get('Element'),
+                    card_data.get('Name_EN'),
+                    card_data.get('Cost'),
+                    card_data.get('Multicard'),
+                    card_data.get('Type_EN'),
+                    card_data.get('Category_1'),
+                    text_en,
+                    card_data.get('Job_EN'),
+                    card_data.get('Power'),
+                    card_data.get('Ex_Burst'),
+                    card_data.get('Set'),
+                    card_data.get('image_url'),
+                    code
+                ))
+                
+                conn.commit()
+                logging.info(f"Updated card {code} in database")
+                return cursor.rowcount > 0
+                
+        except Exception as e:
+            logging.error(f"Failed to update card {code}: {e}")
+            return False
+    
+    def add_card(self, card_data: Dict) -> bool:
+        """Add a new card to the database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Convert Text_EN list to JSON if needed
+                text_en = card_data.get('Text_EN')
+                if isinstance(text_en, list):
+                    text_en = json.dumps(text_en) if text_en else None
+                
+                # Parse code for additional metadata
+                from card_code_parser import parse_card_code
+                parsed_code = parse_card_code(card_data.get('Code', ''))
+                
+                cursor.execute('''
+                    INSERT INTO cards (
+                        code, base_code, base_rarity, variant_type, secondary_code, secondary_rarity, element, name_en, cost, multicard, 
+                        type_en, category_1, text_en, job_en, power, 
+                        ex_burst, set_name, source, image_url, japanese_url
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    card_data.get('Code'),
+                    parsed_code.base_code,
+                    parsed_code.primary_rarity,
+                    parsed_code.variant_type,
+                    parsed_code.secondary_code,
+                    parsed_code.secondary_rarity,
+                    card_data.get('Element'),
+                    card_data.get('Name_EN'),
+                    card_data.get('Cost'),
+                    card_data.get('Multicard'),
+                    card_data.get('Type_EN'),
+                    card_data.get('Category_1'),
+                    text_en,
+                    card_data.get('Job_EN'),
+                    card_data.get('Power'),
+                    card_data.get('Ex_Burst'),
+                    card_data.get('Set'),
+                    'manual',  # Source is 'manual' for manually added cards
+                    card_data.get('image_url'),
+                    card_data.get('image_url_jp')
+                ))
+                
+                conn.commit()
+                logging.info(f"Added new card {card_data.get('Code')} to database")
+                return cursor.rowcount > 0
+                
+        except Exception as e:
+            logging.error(f"Failed to add card {card_data.get('Code')}: {e}")
+            return False
+    
+    def delete_card(self, code: str) -> bool:
+        """Delete a card from the database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('DELETE FROM cards WHERE code = ?', (code,))
+                
+                conn.commit()
+                logging.info(f"Deleted card {code} from database")
+                return cursor.rowcount > 0
+                
+        except Exception as e:
+            logging.error(f"Failed to delete card {code}: {e}")
+            return False
