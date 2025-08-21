@@ -413,14 +413,8 @@ def admin_management():
     
     # Get last fetch time from card_client if available
     last_fetch = getattr(card_client, 'lastfetch', None)
-    if last_fetch and last_fetch != 'never':
-        try:
-            # Convert timestamp to readable format if it's a number
-            if isinstance(last_fetch, (int, float)):
-                import datetime
-                last_fetch = datetime.datetime.fromtimestamp(last_fetch).strftime('%Y-%m-%d %H:%M:%S')
-        except:
-            pass
+    if last_fetch == 'never':
+        last_fetch = None
     
     return render_template('management.html', 
                          total_cards=total_cards,
@@ -461,53 +455,54 @@ def admin_import_database():
     if request.method == 'GET':
         return redirect(url_for('admin_management'))
     
-    message = None
-    message_type = 'danger'
-    
     try:
         # Check if database is empty
         if card_client.db.get_card_count() > 0:
-            message = "Import rejected: Database is not empty. Can only import into an empty database to prevent conflicts."
+            response_data = {
+                'success': False,
+                'message': "Import rejected: Database is not empty. Can only import into an empty database to prevent conflicts."
+            }
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        # Get uploaded file
+        if 'backup_file' not in request.files:
+            response_data = {'success': False, 'message': "No file uploaded"}
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        file = request.files['backup_file']
+        if file.filename == '':
+            response_data = {'success': False, 'message': "No file selected"}
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        # Read and parse JSON
+        file_content = file.read().decode('utf-8')
+        cards_data = json.loads(file_content)
+        
+        if not isinstance(cards_data, list):
+            response_data = {'success': False, 'message': "Invalid file format: Expected JSON array of cards"}
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        # Clear database and import new data
+        if card_client.db.save_cards(cards_data, 'import'):
+            # Update in-memory cards
+            card_client.cards = cards_data
+            response_data = {
+                'success': True,
+                'message': f"Successfully imported {len(cards_data)} cards from backup",
+                'total_cards': len(cards_data)
+            }
+            return Response(response=json.dumps(response_data), status=200, mimetype='application/json')
         else:
-            # Get uploaded file
-            if 'backup_file' not in request.files:
-                message = "No file uploaded"
-            else:
-                file = request.files['backup_file']
-                if file.filename == '':
-                    message = "No file selected"
-                else:
-                    # Read and parse JSON
-                    file_content = file.read().decode('utf-8')
-                    cards_data = json.loads(file_content)
-                    
-                    if not isinstance(cards_data, list):
-                        message = "Invalid file format: Expected JSON array of cards"
-                    else:
-                        # Clear database and import new data
-                        if card_client.db.save_cards(cards_data, 'import'):
-                            # Update in-memory cards
-                            card_client.cards = cards_data
-                            message = f"Successfully imported {len(cards_data)} cards from backup"
-                            message_type = 'success'
-                        else:
-                            message = "Failed to import cards to database"
+            response_data = {'success': False, 'message': "Failed to import cards to database"}
+            return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
     
     except json.JSONDecodeError:
-        message = "Invalid JSON file"
+        response_data = {'success': False, 'message': "Invalid JSON file"}
+        return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
     except Exception as e:
         logging.error(f"Error importing database: {e}")
-        message = f"Error importing database: {str(e)}"
-    
-    # Redirect back with message
-    total_cards = card_client.db.get_card_count()
-    last_fetch = getattr(card_client, 'lastfetch', 'Never')
-    
-    return render_template('management.html',
-                         total_cards=total_cards,
-                         last_fetch=last_fetch,
-                         message=message,
-                         message_type=message_type)
+        response_data = {'success': False, 'message': f"Error importing database: {str(e)}"}
+        return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
 
 
 @app.route('/admin/management/fetch', methods=['POST'])
@@ -534,6 +529,32 @@ def admin_fetch_new_cards():
         logging.error(f"Error in admin_fetch_new_cards: {e}")
         status = {'status': f"Error: {str(e)}"}
         return Response(response=json.dumps(status), status=500, mimetype='application/json')
+
+
+@app.route('/admin/management/status', methods=['GET'])
+@require_admin_auth
+def admin_fetch_status():
+    """Admin endpoint to check fetch status - requires admin authentication"""
+    try:
+        if card_client.lock is False:
+            status_data = {
+                'fetching': False,
+                'lastfetch': card_client.lastfetch,
+                'total_cards': card_client.db.get_card_count()
+            }
+        else:
+            status_data = {
+                'fetching': True,
+                'status': 'Fetch in progress',
+                'lastfetch': card_client.lastfetch,
+                'total_cards': card_client.db.get_card_count()
+            }
+        
+        return Response(response=json.dumps(status_data), status=200, mimetype='application/json')
+    except Exception as e:
+        logging.error(f"Error in admin_fetch_status: {e}")
+        status_data = {'error': str(e)}
+        return Response(response=json.dumps(status_data), status=500, mimetype='application/json')
 
 
 @app.route('/admin/management/clear', methods=['POST'])

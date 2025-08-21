@@ -148,11 +148,6 @@
             </div>
         </div>
 
-        {% if message %}
-            <div class="alert alert-{{ message_type or 'success' }}">
-                {{ message }}
-            </div>
-        {% endif %}
 
         <div class="stats">
             <div class="stat-card">
@@ -176,13 +171,14 @@
             <p>
                 <strong>Warning:</strong> This will only work if the database is empty. If cards exist, the import will be rejected to prevent data conflicts.
             </p>
-            <form method="POST" action="/admin/management/import" enctype="multipart/form-data">
-                <input type="file" name="backup_file" accept=".json" class="file-input" required>
+            <form id="import-form" onsubmit="return importDatabase(event)">
+                <input type="file" name="backup_file" accept=".json" class="file-input" required id="backup-file">
                 <br>
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to import this backup? This can only be done if the database is empty.')">
+                <button type="submit" class="btn btn-danger" id="import-btn">
                     Import Backup
                 </button>
             </form>
+            <div id="import-status" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
 
         <div class="section">
@@ -231,7 +227,29 @@
             }
         });
 
+        function clearAllStatusMessages() {
+            // Clear fetch status
+            const fetchStatus = document.getElementById('fetch-status');
+            if (fetchStatus) {
+                fetchStatus.textContent = '';
+            }
+            
+            // Clear clear database status
+            const clearStatus = document.getElementById('clear-status');
+            if (clearStatus) {
+                clearStatus.textContent = '';
+            }
+            
+            // Clear import status
+            const importStatus = document.getElementById('import-status');
+            if (importStatus) {
+                importStatus.textContent = '';
+            }
+        }
+
         function fetchNewCards() {
+            clearAllStatusMessages(); // Clear any previous status messages
+            
             const btn = document.getElementById('fetch-btn');
             const status = document.getElementById('fetch-status');
             
@@ -248,14 +266,16 @@
             })
             .then(response => response.json())
             .then(data => {
-                status.textContent = data.status || 'Fetch completed';
-                status.style.color = '#28a745';
-                
-                setTimeout(() => {
+                if (data.status.includes('Starting')) {
+                    status.textContent = 'Fetch started, checking for completion...';
+                    // Start polling for completion
+                    pollForCompletion(btn, status);
+                } else {
+                    status.textContent = data.status;
+                    status.style.color = '#dc3545';
                     btn.disabled = false;
                     btn.textContent = 'Fetch New Cards';
-                    status.textContent = '';
-                }, 3000);
+                }
             })
             .catch(error => {
                 status.textContent = 'Error: ' + error.message;
@@ -263,6 +283,125 @@
                 btn.disabled = false;
                 btn.textContent = 'Fetch New Cards';
             });
+        }
+
+        function pollForCompletion(btn, status) {
+            // Poll every 2 seconds to check if fetch is complete
+            const pollInterval = setInterval(() => {
+                fetch('/admin/management/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.fetching) {
+                        // Fetch is complete
+                        clearInterval(pollInterval);
+                        const cardCount = data.total_cards || 0;
+                        status.textContent = `Fetch completed successfully! Found ${cardCount} total cards.`;
+                        status.style.color = '#28a745';
+                        
+                        // Update the displayed card count immediately
+                        const totalCardsElement = document.querySelector('.stat-card .stat-number');
+                        if (totalCardsElement) {
+                            totalCardsElement.textContent = cardCount;
+                        }
+                        
+                        // Update last fetch time if available
+                        if (data.lastfetch) {
+                            const lastFetchElement = document.getElementById('last-fetch-display');
+                            if (lastFetchElement) {
+                                const timestamp = parseFloat(data.lastfetch);
+                                const date = new Date(timestamp * 1000);
+                                const options = {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    timeZoneName: 'short'
+                                };
+                                lastFetchElement.textContent = date.toLocaleString(undefined, options);
+                            }
+                        }
+                        
+                        // Re-enable button but keep the success message
+                        btn.disabled = false;
+                        btn.textContent = 'Fetch New Cards';
+                    } else {
+                        // Still in progress
+                        status.textContent = 'Fetch in progress...';
+                    }
+                })
+                .catch(error => {
+                    // If we can't check status, assume it's done and refresh
+                    clearInterval(pollInterval);
+                    status.textContent = 'Fetch may have completed. Please refresh manually to see results.';
+                    status.style.color = '#856404';
+                    btn.disabled = false;
+                    btn.textContent = 'Fetch New Cards';
+                });
+            }, 2000);
+            
+            // Safety timeout - if polling goes on too long, give up
+            setTimeout(() => {
+                clearInterval(pollInterval);
+                status.textContent = 'Fetch taking longer than expected. Please refresh manually.';
+                status.style.color = '#856404';
+                btn.disabled = false;
+                btn.textContent = 'Fetch New Cards';
+            }, 300000); // 5 minutes timeout
+        }
+
+        function importDatabase(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            if (!confirm('Are you sure you want to import this backup? This can only be done if the database is empty.')) {
+                return false;
+            }
+            
+            clearAllStatusMessages(); // Clear any previous status messages
+            
+            const btn = document.getElementById('import-btn');
+            const status = document.getElementById('import-status');
+            const fileInput = document.getElementById('backup-file');
+            
+            btn.disabled = true;
+            btn.textContent = 'Importing...';
+            status.textContent = 'Processing import...';
+            status.style.color = '#007bff';
+            
+            const formData = new FormData();
+            formData.append('backup_file', fileInput.files[0]);
+            
+            fetch('/admin/management/import', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    status.textContent = data.message;
+                    status.style.color = '#28a745';
+                    
+                    // Update the displayed card count immediately
+                    const totalCardsElement = document.querySelector('.stat-card .stat-number');
+                    if (totalCardsElement && data.total_cards !== undefined) {
+                        totalCardsElement.textContent = data.total_cards;
+                    }
+                } else {
+                    status.textContent = data.message;
+                    status.style.color = '#dc3545';
+                }
+            })
+            .catch(error => {
+                status.textContent = 'Error: ' + error.message;
+                status.style.color = '#dc3545';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Import Backup';
+            });
+            
+            return false;
         }
 
         function clearDatabase() {
@@ -287,6 +426,8 @@
             }
 
             // Proceed with clearing
+            clearAllStatusMessages(); // Clear any previous status messages
+            
             const statusDiv = document.getElementById('clear-status');
             const btn = event.target;
             
@@ -307,10 +448,11 @@
                     statusDiv.textContent = data.message || 'Database cleared successfully!';
                     statusDiv.style.color = '#28a745';
                     
-                    // Refresh page after 2 seconds to show updated stats
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
+                    // Update the displayed card count immediately to 0
+                    const totalCardsElement = document.querySelector('.stat-card .stat-number');
+                    if (totalCardsElement) {
+                        totalCardsElement.textContent = '0';
+                    }
                 } else {
                     statusDiv.textContent = data.message || 'Failed to clear database';
                     statusDiv.style.color = '#dc3545';
