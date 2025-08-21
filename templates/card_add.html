@@ -150,17 +150,8 @@
                     
                     <div class="form-group">
                         <label for="element">Element</label>
-                        <select id="element" name="element">
-                            <option value="">Select Element</option>
-                            <option value="Fire" {{ 'selected' if request.form.get('element') == 'Fire' and not success }}>Fire</option>
-                            <option value="Ice" {{ 'selected' if request.form.get('element') == 'Ice' and not success }}>Ice</option>
-                            <option value="Wind" {{ 'selected' if request.form.get('element') == 'Wind' and not success }}>Wind</option>
-                            <option value="Earth" {{ 'selected' if request.form.get('element') == 'Earth' and not success }}>Earth</option>
-                            <option value="Lightning" {{ 'selected' if request.form.get('element') == 'Lightning' and not success }}>Lightning</option>
-                            <option value="Water" {{ 'selected' if request.form.get('element') == 'Water' and not success }}>Water</option>
-                            <option value="Light" {{ 'selected' if request.form.get('element') == 'Light' and not success }}>Light</option>
-                            <option value="Dark" {{ 'selected' if request.form.get('element') == 'Dark' and not success }}>Dark</option>
-                        </select>
+                        <input type="text" id="element" name="element" value="{{ request.form.get('element', '') if not success else '' }}" 
+                               placeholder="e.g., Fire, Ice/Wind, Earth/Lightning">
                         <div class="code-help">For multi-element cards, use "/" to separate (e.g., Fire/Ice)</div>
                     </div>
                     
