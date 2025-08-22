@@ -95,18 +95,18 @@ class CardClient():
             logging.info("Card sync lock released")
 
     def init(self):
-        """Initialize client - load from database first, then try to sync"""
-        # Load existing data from database first
+        """Initialize client - load from database only"""
+        # Load existing data from database
         try:
             self.cards = self.db.get_all_cards()
             if self.cards:
                 logging.info(f"Loaded {len(self.cards)} cards from database on startup")
+                self.lastfetch = "loaded from database"
             else:
                 logging.info("No existing cards found in database")
+                self.lastfetch = "never"
         except Exception as e:
             logging.error(f"Failed to load initial data from database: {e}")
             self.cards = []
-        
-        # Then try to sync with APIs
-        self.pull_new_cards()
+            self.lastfetch = "never"
 
