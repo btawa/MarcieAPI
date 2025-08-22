@@ -58,6 +58,10 @@ class TextNormalizer:
         
         # Clean up double quotes (Yuri 7-128 issue)
         (r'""', '"'),
+        
+        # Remove HTML paragraph tags from Square API data
+        (r"<p>", ""),
+        (r"</p>", ""),
     ]
     
     @classmethod
