@@ -24,11 +24,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .nav-links {
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
         .nav-links a {
             color: #6c757d;
@@ -89,6 +92,8 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             width: 300px;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         .alert {
             padding: 15px;
@@ -132,6 +137,52 @@
         .stat-label {
             color: #6c757d;
             font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 25px;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 12px;
+            }
+            .nav-links span {
+                font-size: 13px;
+            }
+            .nav-links a {
+                font-size: 13px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            .header {
+                margin-bottom: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .nav-links {
+                gap: 10px;
+            }
+            .nav-links span {
+                font-size: 12px;
+                display: none;
+            }
+            .nav-links a {
+                font-size: 12px;
+            }
+            .file-input {
+                width: 100%;
+            }
         }
     </style>
 </head>
