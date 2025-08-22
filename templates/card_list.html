@@ -183,7 +183,145 @@
                 font-size: 14px;
             }
         }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+                margin: 0;
+                max-width: 100%;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .nav-links span {
+                font-size: 13px;
+            }
+            .nav-links a {
+                font-size: 13px;
+            }
+            .search-form {
+                flex-wrap: wrap;
+                gap: 8px;
+                width: 100%;
+            }
+            .search-form .search-box {
+                min-width: 200px;
+                flex: 1;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .cards-table {
+                width: 100%;
+                table-layout: fixed;
+            }
+            .cards-table th:nth-child(1), /* Image */
+            .cards-table td:nth-child(1) {
+                width: 20%;
+            }
+            .cards-table th:nth-child(2), /* Code */
+            .cards-table td:nth-child(2) {
+                width: 25%;
+            }
+            .cards-table th:nth-child(3), /* Name */
+            .cards-table td:nth-child(3) {
+                width: 30%;
+            }
+            .cards-table th:nth-child(8), /* Actions */
+            .cards-table td:nth-child(8) {
+                width: 25%;
+            }
+            /* Hide Cost and Power columns */
+            .cards-table th:nth-child(6),
+            .cards-table td:nth-child(6),
+            .cards-table th:nth-child(7),
+            .cards-table td:nth-child(7) {
+                display: none;
+            }
+        }
         @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 10px;
+                border-radius: 0;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .nav-links span {
+                display: none;
+            }
+            .nav-links {
+                gap: 10px;
+            }
+            .nav-links a {
+                font-size: 12px;
+            }
+            .search-form {
+                flex-direction: column;
+                width: 100%;
+            }
+            .search-form .search-box {
+                width: 100%;
+                margin-bottom: 8px;
+                box-sizing: border-box;
+            }
+            .search-form .edit-btn {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 5px;
+                box-sizing: border-box;
+            }
+            .cards-table th,
+            .cards-table td {
+                padding: 4px 2px;
+                font-size: 12px;
+            }
+            .card-image {
+                width: 25px;
+                height: 35px;
+            }
+            .card-name {
+                font-size: 11px;
+                line-height: 1.2;
+            }
+            .card-code {
+                font-size: 10px;
+            }
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                width: 100%;
+            }
+            .action-buttons .edit-btn,
+            .action-buttons .delete-btn {
+                font-size: 9px;
+                padding: 6px 4px;
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+                border-radius: 3px;
+                text-decoration: none;
+                display: block;
+                margin: 0;
+                min-height: 24px;
+                line-height: 1.2;
+            }
+            /* Hide Element and Type columns on very small screens */
             .cards-table th:nth-child(4),
             .cards-table td:nth-child(4),
             .cards-table th:nth-child(5),
@@ -191,27 +329,40 @@
                 display: none;
             }
         }
+        .nav-link {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            color: #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <h1 style="margin: 0;">Card Management</h1>
-            <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="nav-links" style="display: flex; gap: 10px; align-items: center;">
                 {% if session.admin_username %}
                     <span style="color: #6c757d; font-size: 14px;">Welcome, {{ session.admin_username }}</span>
-                    <a href="/admin/management" style="color: #6c757d; text-decoration: none; font-size: 14px;">Management</a>
-                    <a href="/admin/logout" style="color: #6c757d; text-decoration: none; font-size: 14px;">Logout</a>
+                    <a href="/admin/management" class="nav-link">Management</a>
+                    <a href="/admin/logout" class="nav-link">Logout</a>
                 {% endif %}
             </div>
         </div>
         
-        <form method="GET" style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+        <form class="search-form" method="GET" style="display: flex; gap: 10px; align-items: stretch; margin-bottom: 20px;">
             <input type="text" name="search" class="search-box" 
                    placeholder="Search by card code or name..." 
                    value="{{ search_term or '' }}" style="flex: 1; margin: 0;">
-            <button type="submit" class="edit-btn" style="padding: 8px 16px;">Search</button>
-            <a href="/admin/card/new" class="edit-btn" style="text-decoration: none; padding: 8px 16px;">+ Add New Card</a>
+            <button type="submit" class="edit-btn" style="padding: 8px 16px; white-space: nowrap;">Search</button>
+            <a href="/admin/card/new" class="edit-btn" style="text-decoration: none; padding: 8px 16px; white-space: nowrap;">+ Add New Card</a>
         </form>
         
         <table class="cards-table">
