@@ -103,19 +103,77 @@
             gap: 20px;
         }
         @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .nav-links span {
+                font-size: 13px;
+            }
+            .nav-links a {
+                font-size: 13px;
+            }
+            h1 {
+                font-size: 24px;
+            }
             .two-column {
                 grid-template-columns: 1fr;
             }
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            .page-header {
+                margin-bottom: 15px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .nav-links span {
+                display: none;
+            }
+            .nav-links {
+                gap: 10px;
+            }
+            .nav-links a {
+                font-size: 12px;
+            }
+        }
+        .nav-link {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            color: #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <h1 style="margin: 0;">Edit Card: {{ card.Code }}</h1>
-            {% if session.admin_username %}
-                <a href="/admin/logout" style="color: #6c757d; text-decoration: none; font-size: 14px;">Logout</a>
-            {% endif %}
+            <div class="nav-links" style="display: flex; gap: 10px; align-items: center;">
+                {% if session.admin_username %}
+                    <span style="color: #6c757d; font-size: 14px;">Welcome, {{ session.admin_username }}</span>
+                    <a href="/admin/cards" class="nav-link">Card Management</a>
+                    <a href="/admin/logout" class="nav-link">Logout</a>
+                {% endif %}
+            </div>
         </div>
         
         {% if message %}
