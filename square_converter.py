@@ -5,6 +5,7 @@ Converts raw Square API data into standardized card format.
 import re
 from typing import List, Dict, Any, Optional
 from text_normalizer import TextNormalizer
+from card_code_parser import parse_card_code
 
 
 class SquareCardConverter:
@@ -31,8 +32,6 @@ class SquareCardConverter:
         Convert code field using the improved parser.
         Returns (full_code, rarity_override)
         """
-        from card_code_parser import parse_card_code
-        
         if not code_value:
             return code_value, None
         

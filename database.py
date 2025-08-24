@@ -4,6 +4,7 @@ import time
 import logging
 import os
 from typing import List, Dict, Optional
+from card_code_parser import parse_card_code
 
 class CardDatabase:
     def __init__(self, db_path: str = None):
@@ -79,7 +80,6 @@ class CardDatabase:
                         text_en = json.dumps(text_en) if text_en else None
                     
                     # Parse code for additional metadata
-                    from card_code_parser import parse_card_code
                     parsed_code = parse_card_code(card.get('Code', ''))
                     
                     batch_data.append((
@@ -243,7 +243,6 @@ class CardDatabase:
                     text_en = json.dumps(text_en) if text_en else None
                 
                 # Parse code for additional metadata
-                from card_code_parser import parse_card_code
                 parsed_code = parse_card_code(code)
                 
                 cursor.execute('''
@@ -308,7 +307,6 @@ class CardDatabase:
                     text_en = json.dumps(text_en) if text_en else None
                 
                 # Parse code for additional metadata
-                from card_code_parser import parse_card_code
                 parsed_code = parse_card_code(card_data.get('Code', ''))
                 
                 cursor.execute('''

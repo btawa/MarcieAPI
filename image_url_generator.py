@@ -4,6 +4,7 @@ Handles creating image URLs for cards based on codes and patterns.
 """
 import re
 from typing import List, Dict, Any
+from card_code_parser import parse_card_code
 
 
 class ImageURLGenerator:
@@ -15,8 +16,6 @@ class ImageURLGenerator:
     @classmethod
     def generate_english_url(cls, card: Dict[str, Any]) -> str:
         """Generate English image URL for a card."""
-        from card_code_parser import parse_card_code
-        
         # Parse the full code to get clean base code and rarity
         full_code = card.get('Code', '')
         parsed = parse_card_code(full_code)
