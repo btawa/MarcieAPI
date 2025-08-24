@@ -88,6 +88,33 @@ def get_new_cards():
         return Response('401 Unauthorized API Key', 401)
 
 
+@app.route('/api/new/selective', methods=['POST'])
+def get_new_cards_selective():
+    if checkAPI() is True:
+        try:
+            if card_client.lock is False:
+                card_client.lock = True
+
+                # Use daemon thread to ensure cleanup on app shutdown
+                x = threading.Thread(target=card_client.pull_new_cards_selective, daemon=True)
+                x.start()
+
+                status = {'status': "Starting selective sync (only new cards), this may take a while"}
+
+                return Response(response=json.dumps(status), status=201, mimetype='application/json')
+            else:
+                status = {'status': "CardClient is locked, is something already running?"}
+                return Response(response=json.dumps(status), status=409, mimetype='application/json')
+
+        except Exception as e:
+            # Reset lock on error and log the issue
+            card_client.lock = False
+            logging.error(f"Error in get_new_cards_selective: {e}")
+            return Response(status=500)
+    else:
+        return Response('401 Unauthorized API Key', 401)
+
+
 @app.route('/api/card/<code>')
 def getCard(code):
     """ This function is used to grab a specific card by code"""
@@ -535,6 +562,32 @@ def admin_fetch_new_cards():
         return Response(response=json.dumps(status), status=500, mimetype='application/json')
 
 
+@app.route('/admin/management/fetch/selective', methods=['POST'])
+@require_admin_auth
+def admin_fetch_selective():
+    """Admin endpoint to fetch only new cards (selective sync) - requires admin authentication"""
+    try:
+        if card_client.lock is False:
+            card_client.lock = True
+            
+            # Use daemon thread to ensure cleanup on app shutdown
+            x = threading.Thread(target=card_client.pull_new_cards_selective, daemon=True)
+            x.start()
+            
+            status = {'status': "Starting selective sync (only new cards), this may take a while"}
+            return Response(response=json.dumps(status), status=201, mimetype='application/json')
+        else:
+            status = {'status': "CardClient is locked, is something already running?"}
+            return Response(response=json.dumps(status), status=409, mimetype='application/json')
+            
+    except Exception as e:
+        # Reset lock on error and log the issue
+        card_client.lock = False
+        logging.error(f"Error in admin_fetch_selective: {e}")
+        status = {'status': f"Error: {str(e)}"}
+        return Response(response=json.dumps(status), status=500, mimetype='application/json')
+
+
 @app.route('/admin/management/status', methods=['GET'])
 @require_admin_auth
 def admin_fetch_status():
@@ -544,7 +597,8 @@ def admin_fetch_status():
             status_data = {
                 'fetching': False,
                 'lastfetch': card_client.lastfetch,
-                'total_cards': card_client.db.get_card_count()
+                'total_cards': card_client.db.get_card_count(),
+                'last_selective_sync': card_client.last_selective_sync_results
             }
         else:
             status_data = {

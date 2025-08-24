@@ -362,6 +362,54 @@ class CardDatabase:
             logging.error(f"Failed to delete card {code}: {e}")
             return False
     
+    def get_existing_codes(self) -> set:
+        """Get set of all existing card codes in database"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT DISTINCT code FROM cards WHERE code IS NOT NULL')
+            return {row[0] for row in cursor.fetchall()}
+    
+    def save_new_cards_only(self, cards: List[Dict], source: str) -> Dict[str, int]:
+        """Save only cards that don't already exist based on exact code match"""
+        import time
+        start_time = time.time()
+        
+        # Get existing codes
+        existing_codes = self.get_existing_codes()
+        logging.info(f"Found {len(existing_codes)} existing codes in database")
+        
+        # Filter cards to only include new ones
+        new_cards = []
+        skipped_count = 0
+        
+        for card in cards:
+            code = card.get('Code', '')
+            
+            if code not in existing_codes:
+                new_cards.append(card)
+            else:
+                skipped_count += 1
+        
+        logging.info(f"Selective sync: {len(new_cards)} new cards, {skipped_count} skipped (already exist)")
+        
+        # Save only new cards
+        if new_cards:
+            success = self.save_cards(new_cards, source)
+            return {
+                'total_fetched': len(cards),
+                'new_cards': len(new_cards),
+                'skipped_cards': skipped_count,
+                'success': success
+            }
+        else:
+            logging.info("No new cards to save")
+            return {
+                'total_fetched': len(cards),
+                'new_cards': 0,
+                'skipped_cards': skipped_count,
+                'success': True
+            }
+    
     def get_card_count(self) -> int:
         """Get total number of cards in database"""
         with sqlite3.connect(self.db_path) as conn:
