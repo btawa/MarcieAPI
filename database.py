@@ -57,6 +57,15 @@ class CardDatabase:
                 )
             ''')
             
+            # Settings table for persistent configuration
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
             conn.commit()
     
     def save_cards(self, cards: List[Dict], source: str) -> bool:
@@ -430,3 +439,54 @@ class CardDatabase:
         except Exception as e:
             logging.error(f"Failed to clear database: {e}")
             return False
+    
+    def get_setting(self, key: str, default_value: str = None) -> Optional[str]:
+        """Get a setting value from database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT value FROM settings WHERE key = ?', (key,))
+                result = cursor.fetchone()
+                return result[0] if result else default_value
+        except Exception as e:
+            logging.error(f"Failed to get setting {key}: {e}")
+            return default_value
+    
+    def set_setting(self, key: str, value: str) -> bool:
+        """Set a setting value in database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT OR REPLACE INTO settings (key, value, updated_at)
+                    VALUES (?, ?, CURRENT_TIMESTAMP)
+                ''', (key, value))
+                conn.commit()
+                logging.info(f"Set setting {key} = {value}")
+                return True
+        except Exception as e:
+            logging.error(f"Failed to set setting {key}: {e}")
+            return False
+    
+    def get_skip_settings(self) -> Dict[str, bool]:
+        """Get all skip settings from database"""
+        try:
+            ffdecks_skip = self.get_setting('ffdecks_skip', 'false').lower() == 'true'
+            square_skip = self.get_setting('square_skip', 'false').lower() == 'true'
+            
+            return {
+                'ffdecks_skip': ffdecks_skip,
+                'square_skip': square_skip
+            }
+        except Exception as e:
+            logging.error(f"Failed to get skip settings: {e}")
+            return {'ffdecks_skip': False, 'square_skip': False}
+    
+    def set_skip_setting(self, service: str, skip_enabled: bool) -> bool:
+        """Set a skip setting in database"""
+        if service not in ['ffdecks', 'square']:
+            return False
+        
+        key = f'{service}_skip'
+        value = 'true' if skip_enabled else 'false'
+        return self.set_setting(key, value)

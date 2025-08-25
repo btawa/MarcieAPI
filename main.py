@@ -598,7 +598,8 @@ def admin_fetch_status():
                 'fetching': False,
                 'lastfetch': card_client.lastfetch,
                 'total_cards': card_client.db.get_card_count(),
-                'last_selective_sync': card_client.last_selective_sync_results
+                'last_selective_sync': card_client.last_selective_sync_results,
+                'last_full_sync': getattr(card_client, 'last_full_sync_results', None)
             }
         else:
             status_data = {
@@ -648,6 +649,77 @@ def admin_clear_database():
         response_data = {
             'success': False,
             'message': f'Error clearing database: {str(e)}'
+        }
+        return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
+
+
+@app.route('/admin/management/skip-settings', methods=['GET'])
+@require_admin_auth
+def admin_get_skip_settings():
+    """Admin endpoint to get current skip settings"""
+    try:
+        response_data = card_client.get_skip_settings()
+        return Response(response=json.dumps(response_data), status=200, mimetype='application/json')
+    except Exception as e:
+        logging.error(f"Error getting skip settings: {e}")
+        response_data = {'error': str(e)}
+        return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
+
+
+@app.route('/admin/management/skip-settings', methods=['POST'])
+@require_admin_auth
+def admin_set_skip_settings():
+    """Admin endpoint to update skip settings"""
+    try:
+        data = request.get_json()
+        if not data:
+            response_data = {
+                'success': False,
+                'message': 'No data provided'
+            }
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        service = data.get('service')
+        skip_enabled = data.get('skip_enabled')
+        
+        if service not in ['ffdecks', 'square']:
+            response_data = {
+                'success': False,
+                'message': 'Invalid service. Must be either "ffdecks" or "square"'
+            }
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        if skip_enabled is None:
+            response_data = {
+                'success': False,
+                'message': 'skip_enabled parameter is required'
+            }
+            return Response(response=json.dumps(response_data), status=400, mimetype='application/json')
+        
+        # Update skip setting using CardClient method
+        if card_client.update_skip_setting(service, bool(skip_enabled)):
+            service_name = 'FFDecks' if service == 'ffdecks' else 'Square'
+            status = 'enabled' if skip_enabled else 'disabled'
+            admin_user = session.get('admin_username', 'unknown')
+            logging.info(f"Admin {admin_user} {status} {service_name} skip")
+            
+            response_data = {
+                'success': True,
+                'message': f'{service_name} skip {status} successfully'
+            }
+            return Response(response=json.dumps(response_data), status=200, mimetype='application/json')
+        else:
+            response_data = {
+                'success': False,
+                'message': f'Failed to update {service} skip setting'
+            }
+            return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
+        
+    except Exception as e:
+        logging.error(f"Error setting skip settings: {e}")
+        response_data = {
+            'success': False,
+            'message': f'Error updating skip settings: {str(e)}'
         }
         return Response(response=json.dumps(response_data), status=500, mimetype='application/json')
 

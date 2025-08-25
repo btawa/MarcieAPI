@@ -184,6 +184,64 @@
                 width: 100%;
             }
         }
+        
+        /* Fetch status display styles */
+        .fetch-summary {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .fetch-summary.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .fetch-summary.warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .fetch-summary.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .fetch-summary h4 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .service-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .service-result {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .service-result.success {
+            border-left: 4px solid #28a745;
+        }
+        .service-result.skipped {
+            border-left: 4px solid #ffc107;
+        }
+        .service-result.error {
+            border-left: 4px solid #dc3545;
+        }
+        .service-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .service-status {
+            font-size: 12px;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -233,6 +291,24 @@
         </div>
 
         <div class="section">
+            <h2>API Service Control</h2>
+            <p>Control which services are called during card fetching. Unchecked services will be skipped. Settings are remembered across page reloads.</p>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="ffdecks-skip" onchange="toggleSkipSetting('ffdecks', !this.checked)">
+                    <label for="ffdecks-skip" style="min-width: 120px; font-weight: 500;">FFDecks API:</label>
+                    <span id="ffdecks-status" style="color: #6c757d; font-size: 14px;">Active</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="square-skip" onchange="toggleSkipSetting('square', !this.checked)">
+                    <label for="square-skip" style="min-width: 120px; font-weight: 500;">Square API:</label>
+                    <span id="square-status" style="color: #6c757d; font-size: 14px;">Active</span>
+                </div>
+            </div>
+            <div id="skip-status" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+
+        <div class="section">
             <h2>Fetch New Cards</h2>
             <p>Trigger a fetch of new cards from the data source. This may take several minutes to complete.</p>
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -240,6 +316,7 @@
                 <button onclick="fetchSelectiveCards()" class="btn" id="fetch-selective-btn" style="background-color: #28a745;">Fetch New Cards Only</button>
             </div>
             <div id="fetch-status" style="margin-top: 10px; font-weight: bold;"></div>
+            <div id="fetch-details" style="margin-top: 10px; display: none;"></div>
         </div>
 
         <div class="section" style="border-color: #dc3545; background-color: #f8d7da;">
@@ -254,7 +331,7 @@
     </div>
 
     <script>
-        // Convert epoch timestamp to readable format on page load
+        // Convert epoch timestamp to readable format and initialize skip settings on page load
         document.addEventListener('DOMContentLoaded', function() {
             const lastFetchElement = document.getElementById('last-fetch-display');
             const lastFetchValue = lastFetchElement.textContent.trim();
@@ -279,6 +356,9 @@
                 lastFetchElement.textContent = readableTime;
                 lastFetchElement.title = `Epoch timestamp: ${lastFetchValue}`;
             }
+            
+            // Initialize skip settings from localStorage and server
+            initializeSkipSettings();
         });
 
         function clearAllStatusMessages() {
@@ -286,6 +366,13 @@
             const fetchStatus = document.getElementById('fetch-status');
             if (fetchStatus) {
                 fetchStatus.textContent = '';
+            }
+            
+            // Clear fetch details
+            const fetchDetails = document.getElementById('fetch-details');
+            if (fetchDetails) {
+                fetchDetails.innerHTML = '';
+                fetchDetails.style.display = 'none';
             }
             
             // Clear clear database status
@@ -299,6 +386,240 @@
             if (importStatus) {
                 importStatus.textContent = '';
             }
+            
+            // Clear skip status
+            const skipStatus = document.getElementById('skip-status');
+            if (skipStatus) {
+                skipStatus.textContent = '';
+            }
+        }
+
+        function initializeSkipSettings() {
+            // Get current skip settings from server
+            fetch('/admin/management/skip-settings')
+            .then(response => response.json())
+            .then(data => {
+                // Update checkboxes and status text based on server state
+                const ffdecksCheckbox = document.getElementById('ffdecks-skip');
+                const squareCheckbox = document.getElementById('square-skip');
+                const ffdecksStatus = document.getElementById('ffdecks-status');
+                const squareStatus = document.getElementById('square-status');
+                
+                if (ffdecksCheckbox && data.ffdecks_skip !== undefined) {
+                    ffdecksCheckbox.checked = !data.ffdecks_skip; // Inverted: checked means active
+                    ffdecksStatus.textContent = data.ffdecks_skip ? 'Skipped' : 'Active';
+                    ffdecksStatus.style.color = data.ffdecks_skip ? '#dc3545' : '#28a745';
+                }
+                
+                if (squareCheckbox && data.square_skip !== undefined) {
+                    squareCheckbox.checked = !data.square_skip; // Inverted: checked means active
+                    squareStatus.textContent = data.square_skip ? 'Skipped' : 'Active';
+                    squareStatus.style.color = data.square_skip ? '#dc3545' : '#28a745';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading skip settings:', error);
+                // Fallback to localStorage if server unavailable
+                const ffdecksSkip = localStorage.getItem('ffdecks_skip') === 'true';
+                const squareSkip = localStorage.getItem('square_skip') === 'true';
+                
+                const ffdecksCheckbox = document.getElementById('ffdecks-skip');
+                const squareCheckbox = document.getElementById('square-skip');
+                const ffdecksStatus = document.getElementById('ffdecks-status');
+                const squareStatus = document.getElementById('square-status');
+                
+                if (ffdecksCheckbox) {
+                    ffdecksCheckbox.checked = !ffdecksSkip; // Inverted: checked means active
+                    ffdecksStatus.textContent = ffdecksSkip ? 'Skipped' : 'Active';
+                    ffdecksStatus.style.color = ffdecksSkip ? '#dc3545' : '#28a745';
+                }
+                
+                if (squareCheckbox) {
+                    squareCheckbox.checked = !squareSkip; // Inverted: checked means active
+                    squareStatus.textContent = squareSkip ? 'Skipped' : 'Active';
+                    squareStatus.style.color = squareSkip ? '#dc3545' : '#28a745';
+                }
+            });
+        }
+
+        function createPrettyFetchStatus(cardCount, serviceResults, isSelective = false) {
+            const statusElement = document.getElementById('fetch-status');
+            const detailsElement = document.getElementById('fetch-details');
+            
+            // Determine overall status
+            let hasErrors = false;
+            let hasSkips = false;
+            
+            if (serviceResults) {
+                Object.values(serviceResults).forEach(result => {
+                    if (result.error && !result.intentional_skip) hasErrors = true;
+                    if (result.intentional_skip) hasSkips = true;
+                });
+            }
+            
+            // Set main status message
+            let mainMessage;
+            if (isSelective) {
+                const newCards = serviceResults ? 
+                    Object.values(serviceResults).reduce((sum, r) => sum + (r.new_cards || 0), 0) : 0;
+                mainMessage = `Selective fetch completed! Added ${newCards} new cards.`;
+            } else {
+                mainMessage = `Fetch completed! Found ${cardCount} total cards.`;
+            }
+            
+            statusElement.textContent = mainMessage;
+            statusElement.style.color = hasErrors ? '#f0ad4e' : '#28a745';
+            
+            // Create detailed status display
+            if (serviceResults && Object.keys(serviceResults).length > 0) {
+                const summaryClass = hasErrors ? 'warning' : (hasSkips ? 'success' : 'success');
+                
+                let detailsHTML = `
+                    <div class="fetch-summary ${summaryClass}">
+                        <h4>Service Results</h4>
+                        <div class="service-results">
+                `;
+                
+                // Square results
+                if (serviceResults.square) {
+                    const sq = serviceResults.square;
+                    let statusClass, statusText, cardInfo;
+                    
+                    if (sq.intentional_skip) {
+                        statusClass = 'skipped';
+                        statusText = 'Skipped via Service Controls';
+                        cardInfo = '';
+                    } else if (sq.success) {
+                        statusClass = 'success';
+                        statusText = 'Successfully fetched';
+                        cardInfo = isSelective ? 
+                            `${sq.new_cards || 0} new cards` : 
+                            `${sq.cards_fetched || 0} cards`;
+                    } else {
+                        statusClass = 'error';
+                        statusText = 'Failed';
+                        cardInfo = sq.error || 'Unknown error';
+                    }
+                    
+                    detailsHTML += `
+                        <div class="service-result ${statusClass}">
+                            <div class="service-name">Square API</div>
+                            <div class="service-status">${statusText}</div>
+                            ${cardInfo ? `<div style="margin-top: 4px; font-weight: 500;">${cardInfo}</div>` : ''}
+                        </div>
+                    `;
+                }
+                
+                // FFDecks results
+                if (serviceResults.ffdecks) {
+                    const ff = serviceResults.ffdecks;
+                    let statusClass, statusText, cardInfo;
+                    
+                    if (ff.intentional_skip) {
+                        statusClass = 'skipped';
+                        statusText = 'Skipped via Service Controls';
+                        cardInfo = '';
+                    } else if (ff.success) {
+                        statusClass = 'success';
+                        statusText = 'Successfully fetched';
+                        cardInfo = isSelective ? 
+                            `${ff.new_cards || 0} new cards` : 
+                            `${ff.cards_fetched || 0} cards`;
+                    } else {
+                        statusClass = 'error';
+                        statusText = 'Failed';
+                        cardInfo = ff.error || 'Unknown error';
+                    }
+                    
+                    detailsHTML += `
+                        <div class="service-result ${statusClass}">
+                            <div class="service-name">FFDecks API</div>
+                            <div class="service-status">${statusText}</div>
+                            ${cardInfo ? `<div style="margin-top: 4px; font-weight: 500;">${cardInfo}</div>` : ''}
+                        </div>
+                    `;
+                }
+                
+                detailsHTML += `
+                        </div>
+                    </div>
+                `;
+                
+                detailsElement.innerHTML = detailsHTML;
+                detailsElement.style.display = 'block';
+            } else {
+                detailsElement.style.display = 'none';
+            }
+        }
+
+        function toggleSkipSetting(service, skipEnabled) {
+            clearAllStatusMessages();
+            
+            const statusElement = document.getElementById('skip-status');
+            const serviceStatus = document.getElementById(service + '-status');
+            
+            // Update UI immediately
+            if (serviceStatus) {
+                serviceStatus.textContent = skipEnabled ? 'Skipped' : 'Active';
+                serviceStatus.style.color = skipEnabled ? '#dc3545' : '#28a745';
+            }
+            
+            statusElement.textContent = 'Updating service settings...';
+            statusElement.style.color = '#007bff';
+            
+            // Save to localStorage as backup
+            localStorage.setItem(service + '_skip', skipEnabled.toString());
+            
+            // Send to server
+            fetch('/admin/management/skip-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    service: service,
+                    skip_enabled: skipEnabled
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusElement.textContent = data.message;
+                    statusElement.style.color = '#28a745';
+                    
+                    // Clear status message after 3 seconds
+                    setTimeout(() => {
+                        statusElement.textContent = '';
+                    }, 3000);
+                } else {
+                    statusElement.textContent = data.message || 'Failed to update service setting';
+                    statusElement.style.color = '#dc3545';
+                    
+                    // Revert UI on error
+                    const checkbox = document.getElementById(service + '-skip');
+                    if (checkbox) {
+                        checkbox.checked = skipEnabled; // Revert checkbox
+                    }
+                    if (serviceStatus) {
+                        serviceStatus.textContent = !skipEnabled ? 'Skipped' : 'Active';
+                        serviceStatus.style.color = !skipEnabled ? '#dc3545' : '#28a745';
+                    }
+                }
+            })
+            .catch(error => {
+                statusElement.textContent = 'Error updating service setting: ' + error.message;
+                statusElement.style.color = '#dc3545';
+                
+                // Revert UI on error
+                const checkbox = document.getElementById(service + '-skip');
+                if (checkbox) {
+                    checkbox.checked = skipEnabled; // Revert checkbox
+                }
+                if (serviceStatus) {
+                    serviceStatus.textContent = !skipEnabled ? 'Skipped' : 'Active';
+                    serviceStatus.style.color = !skipEnabled ? '#dc3545' : '#28a745';
+                }
+            });
         }
 
         function fetchNewCards() {
@@ -349,8 +670,9 @@
                         // Fetch is complete
                         clearInterval(pollInterval);
                         const cardCount = data.total_cards || 0;
-                        status.textContent = `Fetch completed successfully! Found ${cardCount} total cards.`;
-                        status.style.color = '#28a745';
+                        
+                        // Use the pretty status display
+                        createPrettyFetchStatus(cardCount, data.last_full_sync, false);
                         
                         // Update the displayed card count immediately
                         const totalCardsElement = document.querySelector('.stat-card .stat-number');
@@ -456,12 +778,10 @@
                         // Check if we have detailed selective sync results
                         if (data.last_selective_sync) {
                             const results = data.last_selective_sync;
-                            const newCards = results.total_new_cards || 0;
-                            const skippedCards = results.total_skipped_cards || 0;
                             const totalCards = results.total_cards_after_sync || data.total_cards || 0;
                             
-                            status.textContent = `Selective fetch completed successfully! Added ${newCards} new cards (${skippedCards} skipped). Total: ${totalCards} cards.`;
-                            status.style.color = '#28a745';
+                            // Use the pretty status display for selective sync
+                            createPrettyFetchStatus(totalCards, results.sync_details, true);
                             
                             // Update the displayed card count immediately
                             const totalCardsElement = document.querySelector('.stat-card .stat-number');
@@ -470,6 +790,7 @@
                             }
                         } else {
                             // Fallback to generic message
+                            const status = document.getElementById('fetch-status');
                             status.textContent = 'Selective fetch completed successfully!';
                             status.style.color = '#28a745';
                         }
