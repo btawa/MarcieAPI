@@ -1,72 +1,18 @@
-import re
-from marcie_helper_new import *
+from marcie_helper_new import process_square_cards, process_ffdecks_promos
 
 
 def pull_ffdecks_promos() -> list:
-
     try:
-        ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
-        cards = ffdeckstomarcieapi(ffdecks['cards'])
-        imageurlset = urlset(cards)
-        cards = addimageurltojson(cards, imageurlset)
-        cards = addjapaneseurls(cards)
-        promos = []
-
-        for card in cards:
-            if re.search(r'^PR-[0-9]+', card['Code']):
-                promos.append(card)
-
-        return promos
-
-    except:
-        return []
-
-
-def pull_ffdecks_cards() -> list:
-
-
-    try:
-        ffdecks = loadFfdecks('https://ffdecks.com/api/card/game-language/1')
-        cards = ffdeckstomarcieapi(ffdecks['cards'])
-        imageurlset = urlset(cards)
-        cards = addimageurltojson(cards, imageurlset)
-        cards = addjapaneseurls(cards)
-        promos = []
-        non_promos = []
-
-
-        for card in cards:
-            if re.search(r'PR-0[1-9]', card['Code']):
-                promos.append(card)
-            else:
-                non_promos.append(card)
-
-        return non_promos
-
+        return process_ffdecks_promos('https://ffdecks.com/api/card/game-language/1')
     except:
         return []
 
 
 def pull_square_cards() -> list:
-    square = loadSquare('https://fftcg.square-enix-games.com/en/get-cards')
-    cards = squaretomarcieapi2(square['cards']) # 2 is after Opus 21 Changes
-
-    # Remove Duplicates
-    added_codes = []
-    result = []
-    for card in cards:
-        if card['Code'] not in added_codes:
-            added_codes.append(card['Code'])
-            result.append(card)
-
-
-    cards = result
-
-    imageurlset = urlset(cards)
-    cards = addimageurltojson(cards, imageurlset)
-    cards = addjapaneseurls(cards)
-
-    return cards
+    try:
+        return process_square_cards('https://fftcg.square-enix-games.com/en/get-cards')
+    except:
+        return []
 
 
 def combine_cards(card_group_1, card_group_2) -> list:
