@@ -162,6 +162,12 @@
                     </div>
                     
                     <div class="form-group">
+                        <label for="rarity">Rarity</label>
+                        <input type="text" id="rarity" name="rarity" value="{{ request.form.get('rarity', '') if not success else '' }}" 
+                               placeholder="e.g., C, R, H, L, S">
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="type_en">Type</label>
                         <input type="text" id="type_en" name="type_en" value="{{ request.form.get('type_en', '') if not success else '' }}" 
                                placeholder="e.g., Forward, Backup, Summon">
@@ -210,6 +216,12 @@
                     <div class="form-group">
                         <label for="image_url">Image URL</label>
                         <input type="url" id="image_url" name="image_url" value="{{ request.form.get('image_url', '') if not success else '' }}" 
+                               placeholder="https://...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image_url_jp">Image URL (Japanese)</label>
+                        <input type="url" id="image_url_jp" name="image_url_jp" value="{{ request.form.get('image_url_jp', '') if not success else '' }}" 
                                placeholder="https://...">
                     </div>
                 </div>

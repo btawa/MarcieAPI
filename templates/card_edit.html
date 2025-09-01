@@ -208,6 +208,12 @@
                     </div>
                     
                     <div class="form-group">
+                        <label for="rarity">Rarity</label>
+                        <input type="text" id="rarity" name="rarity" value="{{ card.Rarity or '' }}" 
+                               placeholder="e.g., C, R, H, L, S">
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="type_en">Type</label>
                         <input type="text" id="type_en" name="type_en" value="{{ card.Type_EN or '' }}">
                     </div>
@@ -251,6 +257,11 @@
                     <div class="form-group">
                         <label for="image_url">Image URL</label>
                         <input type="url" id="image_url" name="image_url" value="{{ card.image_url or '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image_url_jp">Image URL (Japanese)</label>
+                        <input type="url" id="image_url_jp" name="image_url_jp" value="{{ card.image_url_jp or '' }}">
                     </div>
                 </div>
             </div>
