@@ -320,7 +320,7 @@ def admin_add_card():
                     'Ex_Burst': bool(request.form.get('ex_burst')),
                     'image_url': request.form.get('image_url'),
                     'image_url_jp': request.form.get('image_url_jp'),
-                    'rarity': request.form.get('rarity'),
+                    'Rarity': request.form.get('rarity'),
                     'Text_EN': [line.rstrip('\r') for line in request.form.get('text_en').split('\n')] if request.form.get('text_en') else None
                 }
                 
@@ -341,7 +341,7 @@ def admin_add_card():
     empty_card = {
         'Code': '', 'Name_EN': '', 'Element': '', 'Cost': '', 'Type_EN': '', 
         'Job_EN': '', 'Power': '', 'Category_1': '', 'Set': '', 
-        'Multicard': False, 'Ex_Burst': False, 'image_url': '', 'image_url_jp': '', 'rarity': '', 'Text_EN': ''
+        'Multicard': False, 'Ex_Burst': False, 'image_url': '', 'image_url_jp': '', 'Rarity': '', 'Text_EN': ''
     }
     
     return render_template('card_add.html', 
