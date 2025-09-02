@@ -386,7 +386,7 @@ def admin_edit_card(code):
                 'Ex_Burst': bool(request.form.get('ex_burst')),
                 'image_url': request.form.get('image_url'),
                 'image_url_jp': request.form.get('image_url_jp'),
-                'rarity': request.form.get('rarity'),
+                'Rarity': request.form.get('rarity'),
                 'Text_EN': [line.rstrip('\r') for line in request.form.get('text_en').split('\n')] if request.form.get('text_en') else None
             }
             
